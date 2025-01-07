@@ -30,7 +30,6 @@ func main() {
 	}
 
 	commands.RegisterCommands(dg)
-
 	handlers.UpdateBOTMHiscores(dg)
 
 	fmt.Println("Bot is now running. Press CTRL+C to exit.")
