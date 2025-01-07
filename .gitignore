@@ -1,0 +1,39 @@
+# Ignore .env files for sensitive configurations
+.env
+
+# Ignore the assets folder (contains sensitive or local files)
+assets/
+
+# Specific files within the assets folder (if you don't want to ignore the entire folder)
+assets/*.json
+
+# Ignore Go-specific build and cache files
+/bin/
+*.exe
+*.out
+*.log
+*.test
+*.tmp
+/go.sum
+/go.work
+/go.work.sum
+/vendor/
+
+# Ignore IDE-specific and editor files
+.idea/
+.vscode/
+*.iml
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore temporary files
+*.swp
+*.swo
+*.bak
+*.tmp
+*.old
+
+# Ignore build artifacts (if you build the bot into a binary)
+build/
