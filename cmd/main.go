@@ -6,9 +6,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"misclicked-events/commands"
-	"misclicked-events/config"
-	"misclicked-events/handlers"
+	"misclicked-events/internal/commands"
+	"misclicked-events/internal/config"
+	"misclicked-events/internal/handlers"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -29,7 +29,8 @@ func main() {
 		return
 	}
 
-	commands.RegisterCommands(dg)
+	commands.RegisterCommands(dg, false)
+
 	handlers.UpdateBOTMHiscores(dg)
 
 	fmt.Println("Bot is now running. Press CTRL+C to exit.")

@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"misclicked-events/commands"
-	"misclicked-events/utils"
+	"misclicked-events/internal/commands"
+	"misclicked-events/internal/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -10,17 +10,17 @@ import (
 func InteractionCreateHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	switch i.ApplicationCommandData().Name {
 	case "setup-channels":
-		commands.ConfigCommand(s, i)
+		commands.HandleConfigCommand(s, i)
 	case "track":
-		commands.TrackNewAccountCommand(s, i)
+		commands.HandleTrackNewAccountCommand(s, i)
 	case "untrack":
-		commands.UnTrackAccountCommand(s, i)
+		commands.HandleUnTrackAccountCommand(s, i)
 	case "tracking":
-		commands.TrackedAccountsCommand(s, i)
+		commands.HandleTrackedAccountsCommand(s, i)
 	case "start":
-		commands.StartActivityCommand(s, i)
+		commands.HandleStartActivityCommand(s, i)
 	case "end":
-		commands.EndActivityCommand(s, i)
+		commands.HandleEndActivityCommand(s, i)
 	default:
 		utils.LogError("Unknown command", nil)
 	}

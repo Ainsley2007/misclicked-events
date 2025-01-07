@@ -2,14 +2,48 @@ package commands
 
 import (
 	"fmt"
-	"misclicked-events/data"
-	"misclicked-events/utils"
+	"misclicked-events/internal/constants"
+	"misclicked-events/internal/data"
+	"misclicked-events/internal/utils"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-func StartActivityCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
+var StartActivityCommand = &discordgo.ApplicationCommand{
+	Name:        "start",
+	Description: "Select an activity to start",
+	Options: []*discordgo.ApplicationCommandOption{
+		{
+			Type:        discordgo.ApplicationCommandOptionString,
+			Name:        "choice",
+			Description: "Choose an activity",
+			Required:    true,
+			Choices: []*discordgo.ApplicationCommandOptionChoice{
+				{Name: "Colosseum", Value: "COLO"},
+				{Name: "Corporeal beast", Value: "Corp"},
+				{Name: "Wildy boss trio (Vet'ion, Callisto, Venenatis)", Value: "Wildy"},
+				{Name: "COX", Value: "COX"},
+				{Name: "Huey", Value: "Huey"},
+				{Name: "Inferno", Value: "Inferno"},
+				{Name: "Nex", Value: "Nex"},
+				{Name: "NM + PNM", Value: "NM"},
+				{Name: "Sarachnis", Value: "Sarachnis"},
+				{Name: "TOA", Value: "TOA"},
+				{Name: "TOB", Value: "TOB"},
+				{Name: "Zulrah", Value: "Zulrah"},
+			},
+		},
+		{
+			Type:        discordgo.ApplicationCommandOptionString,
+			Name:        "password",
+			Description: "Set an activity password",
+			Required:    true,
+		},
+	},
+}
+
+func HandleStartActivityCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if !utils.IsAdmin(i) {
 		utils.RespondWithError(s, i, fmt.Errorf("you do not have the required permissions to use this command"))
 		return
@@ -55,7 +89,7 @@ func StartActivityCommand(s *discordgo.Session, i *discordgo.InteractionCreate) 
 	successMessage := fmt.Sprintf(
 		"Activity selected: **%s**, now tracking kc for: **%s**",
 		choice,
-		strings.Join(data.Activities[choice], ", "),
+		strings.Join(constants.Activities[choice], ", "),
 	)
 	_, err = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
 		Content: &successMessage,

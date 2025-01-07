@@ -2,6 +2,8 @@ package data
 
 import (
 	"fmt"
+	"misclicked-events/internal/constants"
+	"misclicked-events/internal/service"
 	"sort"
 
 	"golang.org/x/text/cases"
@@ -272,13 +274,13 @@ func addAccountToParticipant(participant *Participant, username, currentBoss str
 
 // fetchKc calculates the total KC for the given username and boss.
 func fetchKc(username, bossId string) (int, error) {
-	_, activities, err := fetchHiscore(username)
+	_, activities, err := service.FetchHiscore(username)
 	if err != nil {
 		return 0, fmt.Errorf("failed to fetch hiscores for %s: %w", username, err)
 	}
 
 	kc := 0
-	for _, activityName := range Activities[bossId] {
+	for _, activityName := range constants.Activities[bossId] {
 		if activity, exists := activities[activityName]; exists {
 			kc += activity.Amount
 		}

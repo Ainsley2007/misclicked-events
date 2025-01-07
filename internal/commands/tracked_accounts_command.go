@@ -2,13 +2,18 @@ package commands
 
 import (
 	"fmt"
-	"misclicked-events/data"
-	"misclicked-events/utils"
+	"misclicked-events/internal/data"
+	"misclicked-events/internal/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-func TrackedAccountsCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
+var TrackedAccountsCommand = &discordgo.ApplicationCommand{
+	Name:        "tracking",
+	Description: "accounts you're currently tracking",
+}
+
+func HandleTrackedAccountsCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	accounts, err := data.TrackedAccounts(i.GuildID, i.Member.User.ID)
 	if err != nil {
 		utils.RespondWithError(s, i, err)

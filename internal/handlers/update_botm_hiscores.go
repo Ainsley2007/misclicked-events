@@ -2,8 +2,8 @@ package handlers
 
 import (
 	"fmt"
-	"misclicked-events/data"
-	"misclicked-events/utils"
+	"misclicked-events/internal/data"
+	"misclicked-events/internal/utils"
 	"time"
 
 	"github.com/bwmarrin/discordgo"

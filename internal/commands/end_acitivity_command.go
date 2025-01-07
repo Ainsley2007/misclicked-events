@@ -2,13 +2,26 @@ package commands
 
 import (
 	"fmt"
-	"misclicked-events/data"
-	"misclicked-events/utils"
+	"misclicked-events/internal/data"
+	"misclicked-events/internal/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-func EndActivityCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
+var EndActivityCommand = &discordgo.ApplicationCommand{
+	Name:        "end",
+	Description: "End the current activity",
+	Options: []*discordgo.ApplicationCommandOption{
+		{
+			Type:        discordgo.ApplicationCommandOptionString,
+			Name:        "password",
+			Description: "provide the activity password",
+			Required:    true,
+		},
+	},
+}
+
+func HandleEndActivityCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if !utils.IsAdmin(i) {
 		utils.RespondWithError(s, i, fmt.Errorf("you do not have the required permissions to use this command"))
 		return

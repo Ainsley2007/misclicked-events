@@ -1,4 +1,4 @@
-package data
+package service
 
 import (
 	"fmt"
@@ -15,29 +15,13 @@ type Skill struct {
 	Experience int
 }
 
-// Activity represents an activity's name, rank, and amount.
 type Activity struct {
 	Name   string
 	Rank   int
 	Amount int
 }
 
-var Activities = map[string][]string{
-	"COLO":      {"Sol Heredit"},
-	"Corp":      {"Corporeal Beast"},
-	"Wildy":     {"Artio", "Callisto", "Cal'varion", "Vet'ion", "Venenatis", "Spindel"},
-	"COX":       {"Chambers of Xeric", "Chambers of Xeric: Challenge Mode"},
-	"Huey":      {"The Hueycoatl"},
-	"Inferno":   {"TzKal-Zuk"},
-	"Nex":       {"Nex"},
-	"NM":        {"Nightmare", "Phosani's Nightmare"},
-	"Sarachnis": {"Sarachnis"},
-	"TOA":       {"Tombs of Amascut", "Tombs of Amascut: Expert Mode"},
-	"TOB":       {"Theatre of Blood", "Theatre of Blood: Hard Mode"},
-	"Zulrah":    {"Zulrah"},
-}
-
-func fetchHiscore(username string) (map[string]Skill, map[string]Activity, error) {
+func FetchHiscore(username string) (map[string]Skill, map[string]Activity, error) {
 	url := fmt.Sprintf("https://secure.runescape.com/m=hiscore_oldschool/index_lite.ws?player=%s", username)
 	resp, err := http.Get(url)
 	if err != nil {

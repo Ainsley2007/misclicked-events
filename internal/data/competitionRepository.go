@@ -2,6 +2,8 @@ package data
 
 import (
 	"fmt"
+	"misclicked-events/internal/constants"
+	"misclicked-events/internal/service"
 	"sync"
 )
 
@@ -14,61 +16,6 @@ func StartCompetition(guildID string, bossId string, competitionPassword string)
 	return nil
 }
 
-/*
-	func lookupInitialKcForParticipants(bossId string) {
-		// Fetch all participants
-		participants, err := getParticipants()
-		if err != nil {
-			fmt.Println("Error fetching participants:", err)
-			return
-		}
-
-		// Iterate through each participant
-		for discordId, participant := range participants {
-			// Iterate through each OSRS account linked to the participant
-			for accountName, account := range participant.LinkedOSRSAccounts {
-				// Fetch hiscores for the account
-				_, activities, err := fetchHiscore(accountName)
-				if err != nil {
-					fmt.Printf("Error fetching hiscore for account %s: %v\n", accountName, err)
-					continue
-				}
-
-				kc := 0
-				for _, act := range Activities[bossId] {
-					activity, exists := activities[act]
-					if !exists {
-						fmt.Printf("No activity found for boss %s for account %s\n", bossId, accountName)
-						continue
-					}
-					kc += activity.Amount
-				}
-
-				// Add the initial activity to the account
-				if account.Activities == nil {
-					account.Activities = make(map[string]OSRSActivity)
-				}
-				account.Activities[bossId] = OSRSActivity{
-					Name:          bossId,
-					StartAmount:   kc,
-					CurrentAmount: kc,
-				}
-
-				// Update the participant's account in the map
-				participant.LinkedOSRSAccounts[accountName] = account
-			}
-
-			// Update the participants map
-			participants[discordId] = participant
-		}
-
-		// Save the updated participants
-		err = saveParticipantsData(participants)
-		if err != nil {
-			fmt.Println("Error saving updated participants:", err)
-		}
-	}
-*/
 func lookupInitialKcForParticipantsAsync(guildID, bossId string) {
 	participants, err := getParticipants(guildID)
 	if err != nil {
@@ -88,14 +35,14 @@ func lookupInitialKcForParticipantsAsync(guildID, bossId string) {
 				defer wg.Done() // Decrement the counter when the goroutine completes
 
 				// Fetch hiscores for the account
-				_, activities, err := fetchHiscore(accountName)
+				_, activities, err := service.FetchHiscore(accountName)
 				if err != nil {
 					fmt.Printf("Error fetching hiscore for account %s: %v\n", accountName, err)
 					return
 				}
 
 				kc := 0
-				for _, act := range Activities[bossId] {
+				for _, act := range constants.Activities[bossId] {
 					activity, exists := activities[act]
 					if !exists {
 						fmt.Printf("No activity found for boss %s for account %s\n", bossId, accountName)
