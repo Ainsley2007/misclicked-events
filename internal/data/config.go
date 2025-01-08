@@ -65,7 +65,6 @@ func GetBotConfig(guildID string) (*BotConfig, error) {
 	return &config, nil
 }
 
-// UpdateChannelIDs updates the channel IDs in the configuration and clears message IDs
 func UpdateChannelIDs(guildID string, newChannels BotConfig) error {
 	config, err := GetBotConfig(guildID)
 	if err != nil {
@@ -82,7 +81,6 @@ func UpdateChannelIDs(guildID string, newChannels BotConfig) error {
 	return SaveBotConfig(guildID, *config)
 }
 
-// UpdateMessageIDs updates the message IDs in the configuration
 func UpdateHiscoreMessageID(guildID, hiscoreMessageID string) error {
 	config, err := GetBotConfig(guildID)
 	if err != nil {

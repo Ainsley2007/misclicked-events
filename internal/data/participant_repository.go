@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"misclicked-events/internal/constants"
 	"misclicked-events/internal/service"
+	"misclicked-events/internal/utils"
 	"sort"
 
 	"golang.org/x/text/cases"
@@ -37,10 +38,11 @@ type AccountKC struct {
 	TotalKC     int
 }
 
-func TrackAccount(guildID, username, discordId string) error {
+func TrackAccount(guildID, username, discordId string) bool {
 	participants, err := getParticipants(guildID)
 	if err != nil {
-		return err
+		utils.LogError("error getting participants", err)
+		return false
 	}
 
 	currentBoss := GetCurrentBoss(guildID)
@@ -52,22 +54,31 @@ func TrackAccount(guildID, username, discordId string) error {
 	participant, exists := participants[discordId]
 
 	if !exists {
-		// New participant, create and initialize
+		accountExists := service.CheckIfPlayerExists(username)
+		if !accountExists {
+			utils.LogError("err", fmt.Errorf("couldn't find a user with the name: %s", username))
+			return false
+		}
 		participant, err = createNewParticipant(discordId, username, currentBoss)
 		if err != nil {
-			return err
+			utils.LogError("error creating participant", err)
+			return false
 		}
 		participants[discordId] = participant
 	} else {
-		// Update existing participant
 		err = addAccountToParticipant(&participant, username, currentBoss)
 		if err != nil {
-			return err
+			utils.LogError("error adding account to participant", err)
+			return false
 		}
 		participants[discordId] = participant
 	}
 
-	return saveParticipantsData(guildID, participants)
+	err = saveParticipantsData(guildID, participants)
+	if err != nil {
+		utils.LogError("error saving participants: ", err)
+	}
+	return true
 }
 
 func UpdateAccountsKC(guildID string) error {
@@ -143,7 +154,7 @@ func GetParticipantsByKCThreshold(guildID string, threshold int) ([]ParticipantK
 	// Iterate through participants
 	for _, participant := range participants {
 		totalKC := 0
-		accountBreakdown := []AccountKC{}
+		var accountBreakdown []AccountKC
 
 		// Iterate through accounts to calculate KC
 		for _, account := range participant.LinkedOSRSAccounts {

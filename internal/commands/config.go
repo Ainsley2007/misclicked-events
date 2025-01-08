@@ -35,7 +35,7 @@ var ConfigCommand = &discordgo.ApplicationCommand{
 
 func HandleConfigCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if !utils.IsAdmin(i) {
-		utils.RespondWithError(s, i, fmt.Errorf("you do not have the required permissions to use this command"))
+		utils.RespondWithError(s, i, fmt.Errorf("you don't have the required permissions"))
 		return
 	}
 
@@ -43,16 +43,10 @@ func HandleConfigCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	hiscoreChannelID := i.ApplicationCommandData().Options[1].ChannelValue(s)
 	categoryChannelID := i.ApplicationCommandData().Options[2].ChannelValue(s)
 
-	var config = data.BotConfig{
-		CategoryChannelID: categoryChannelID.ID,
-		HiscoreChannelID:  hiscoreChannelID.ID,
-		RankingChannelID:  rankingChannelID.ID,
-	}
-
-	err := data.UpdateChannelIDs(i.GuildID, config)
+	err := data.UpdateConfig(i.GuildID, rankingChannelID.ID, hiscoreChannelID.ID, categoryChannelID.ID)
 	if err != nil {
-		utils.RespondWithError(s, i, err)
+		utils.RespondWithError(s, i, fmt.Errorf("something went wrong while trying to update the config"))
 	}
 
-	utils.RespondWithPrivateMessage(s, i, "%s", "Config saved.")
+	utils.RespondWithPrivateMessage(s, i, "%s", "Config saved!")
 }

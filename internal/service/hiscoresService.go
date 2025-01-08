@@ -21,6 +21,19 @@ type Activity struct {
 	Amount int
 }
 
+func CheckIfPlayerExists(username string) bool {
+	url := fmt.Sprintf("https://secure.runescape.com/m=hiscore_oldschool/index_lite.ws?player=%s", username)
+	resp, err := http.Get(url)
+	if err != nil {
+		return false
+	}
+	if resp.StatusCode != 200 {
+		return false
+	}
+
+	return true
+}
+
 func FetchHiscore(username string) (map[string]Skill, map[string]Activity, error) {
 	url := fmt.Sprintf("https://secure.runescape.com/m=hiscore_oldschool/index_lite.ws?player=%s", username)
 	resp, err := http.Get(url)
