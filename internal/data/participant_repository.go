@@ -38,47 +38,67 @@ type AccountKC struct {
 	TotalKC     int
 }
 
-func TrackAccount(guildID, username, discordId string) bool {
+func TrackAccount(guildID, username, discordId string) error {
+	// Retrieve participants for the guild
 	participants, err := getParticipants(guildID)
 	if err != nil {
-		utils.LogError("error getting participants", err)
-		return false
+		utils.LogError("Failed to retrieve participants", err)
+		return fmt.Errorf("failed to retrieve participants: %w", err)
 	}
 
+	// Ensure the participants map is initialized
+	if participants == nil {
+		participants = make(map[string]Participant)
+	}
+
+	// Get the current competition boss (if any)
 	currentBoss := GetCurrentBoss(guildID)
 
-	if participants == nil {
-		participants = map[string]Participant{}
-	}
-
+	// Check if the participant already exists
 	participant, exists := participants[discordId]
 
 	if !exists {
-		accountExists := service.CheckIfPlayerExists(username)
-		if !accountExists {
-			utils.LogError("err", fmt.Errorf("couldn't find a user with the name: %s", username))
-			return false
+		// Validate the username
+		if !service.CheckIfPlayerExists(username) {
+			err := fmt.Errorf("could not find an OSRS account with the username: %s", username)
+			utils.LogError("Invalid username", err)
+			return err
 		}
+
+		// Create a new participant
 		participant, err = createNewParticipant(discordId, username, currentBoss)
 		if err != nil {
-			utils.LogError("error creating participant", err)
-			return false
+			utils.LogError("Failed to create new participant", err)
+			return fmt.Errorf("failed to create new participant: %w", err)
 		}
+
 		participants[discordId] = participant
 	} else {
+		// Validate the username
+		if !service.CheckIfPlayerExists(username) {
+			err := fmt.Errorf("could not find an OSRS account with the username: %s", username)
+			utils.LogError("Invalid username", err)
+			return err
+		}
+
+		// Add the account to the existing participant
 		err = addAccountToParticipant(&participant, username, currentBoss)
 		if err != nil {
-			utils.LogError("error adding account to participant", err)
-			return false
+			utils.LogError("Failed to add account to participant", err)
+			return fmt.Errorf("failed to add account to participant: %w", err)
 		}
+
 		participants[discordId] = participant
 	}
 
+	// Save the updated participants map
 	err = saveParticipantsData(guildID, participants)
 	if err != nil {
-		utils.LogError("error saving participants: ", err)
+		utils.LogError("Failed to save participants data", err)
+		return fmt.Errorf("failed to save participants data: %w", err)
 	}
-	return true
+
+	return nil
 }
 
 func UpdateAccountsKC(guildID string) error {

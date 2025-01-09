@@ -27,11 +27,11 @@ func CheckIfPlayerExists(username string) bool {
 	if err != nil {
 		return false
 	}
-	if resp.StatusCode != 200 {
-		return false
+	if resp.StatusCode == 200 {
+		return true
 	}
 
-	return true
+	return false
 }
 
 func FetchHiscore(username string) (map[string]Skill, map[string]Activity, error) {

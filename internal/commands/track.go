@@ -29,12 +29,12 @@ func HandleTrackNewAccountCommand(s *discordgo.Session, i *discordgo.Interaction
 	}
 
 	username := options[0].StringValue()
-	success := data.TrackAccount(i.GuildID, username, i.Member.User.ID)
-	if !success {
-		utils.RespondWithError(s, i, fmt.Errorf("something went wrong trying to track your account"))
+	err := data.TrackAccount(i.GuildID, username, i.Member.User.ID)
+	if err != nil {
+		utils.RespondWithError(s, i, fmt.Errorf("could not track the account '%s': %w", username, err))
 		return
 	}
 
-	response := fmt.Sprintf("The OSRS account '%s' is now linked to your profile and being tracked for you!", username)
+	response := fmt.Sprintf("Successfully started tracking the OSRS account: **%s**", username)
 	utils.RespondWithPrivateMessage(s, i, "%s", response)
 }
