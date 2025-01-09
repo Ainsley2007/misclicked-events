@@ -16,15 +16,50 @@ type Participant struct {
 	LinkedOSRSAccounts map[string]OSRSAccount
 }
 
+func (p Participant) TotalKCForActivity(activityName string) (int, []AccountKC) {
+	totalKC := 0
+	var accountBreakdown []AccountKC
+
+	for _, account := range p.LinkedOSRSAccounts {
+		accountKC := account.KCForActivity(activityName)
+		if accountKC > 0 { // Include accounts contributing more than 0 KC
+			accountBreakdown = append(accountBreakdown, AccountKC{
+				AccountName: account.Name,
+				TotalKC:     accountKC,
+			})
+			totalKC += accountKC
+		}
+	}
+
+	// Sort the breakdown by KC in descending order
+	sort.Slice(accountBreakdown, func(i, j int) bool {
+		return accountBreakdown[i].TotalKC > accountBreakdown[j].TotalKC
+	})
+
+	return totalKC, accountBreakdown
+}
+
 type OSRSAccount struct {
 	Name       string
 	Activities map[string]OSRSActivity
+}
+
+func (acc OSRSAccount) KCForActivity(activityName string) int {
+	activity, exists := acc.Activities[activityName]
+	if !exists {
+		return 0
+	}
+	return activity.KC()
 }
 
 type OSRSActivity struct {
 	Name          string
 	StartAmount   int
 	CurrentAmount int
+}
+
+func (a OSRSActivity) KC() int {
+	return a.CurrentAmount - a.StartAmount
 }
 
 type ParticipantKC struct {
@@ -163,7 +198,8 @@ func UpdateAccountsKC(guildID string) error {
 	return nil
 }
 
-func GetParticipantsByKCThreshold(guildID string, threshold int) ([]ParticipantKC, error) {
+func GetParticipantsByActivityKCThreshold(guildID, activityName string) ([]ParticipantKC, error) {
+	// Fetch participants for the given guild
 	participants, err := getParticipants(guildID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch participants: %w", err)
@@ -173,32 +209,11 @@ func GetParticipantsByKCThreshold(guildID string, threshold int) ([]ParticipantK
 
 	// Iterate through participants
 	for _, participant := range participants {
-		totalKC := 0
-		var accountBreakdown []AccountKC
+		// Use the Participant method to calculate total KC and breakdown
+		totalKC, accountBreakdown := participant.TotalKCForActivity(activityName)
 
-		// Iterate through accounts to calculate KC
-		for _, account := range participant.LinkedOSRSAccounts {
-			accountKC := 0
-
-			for _, activity := range account.Activities {
-				kcDiff := activity.CurrentAmount - activity.StartAmount
-				if kcDiff > threshold {
-					accountKC += kcDiff
-				}
-			}
-
-			// Include account only if it contributed KC
-			if accountKC > 0 {
-				accountBreakdown = append(accountBreakdown, AccountKC{
-					AccountName: account.Name,
-					TotalKC:     accountKC,
-				})
-				totalKC += accountKC
-			}
-		}
-
-		// Add participant if they have eligible KC
-		if totalKC > 0 {
+		// Add participant to the result if their total KC exceeds the threshold
+		if totalKC > constants.Activities[activityName].Threshold {
 			result = append(result, ParticipantKC{
 				DiscordId:  participant.DiscordId,
 				TotalKC:    totalKC,
@@ -311,7 +326,7 @@ func fetchKc(username, bossId string) (int, error) {
 	}
 
 	kc := 0
-	for _, activityName := range constants.Activities[bossId] {
+	for _, activityName := range constants.Activities[bossId].BossNames {
 		if activity, exists := activities[activityName]; exists {
 			kc += activity.Amount
 		}

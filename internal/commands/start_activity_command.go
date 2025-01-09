@@ -89,7 +89,7 @@ func HandleStartActivityCommand(s *discordgo.Session, i *discordgo.InteractionCr
 	successMessage := fmt.Sprintf(
 		"Activity selected: **%s**, now tracking kc for: **%s**",
 		choice,
-		strings.Join(constants.Activities[choice], ", "),
+		strings.Join(constants.Activities[choice].BossNames, ", "),
 	)
 	_, err = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
 		Content: &successMessage,

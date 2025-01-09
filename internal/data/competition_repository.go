@@ -42,7 +42,7 @@ func lookupInitialKcForParticipantsAsync(guildID, bossId string) {
 				}
 
 				kc := 0
-				for _, act := range constants.Activities[bossId] {
+				for _, act := range constants.Activities[bossId].BossNames {
 					activity, exists := activities[act]
 					if !exists {
 						fmt.Printf("No activity found for boss %s for account %s\n", bossId, accountName)

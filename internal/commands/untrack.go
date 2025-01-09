@@ -39,6 +39,12 @@ func HandleUnTrackAccountCommand(s *discordgo.Session, i *discordgo.InteractionC
 		return
 	}
 
+	//update the hiscore message
+	err = UpdateHiscoreMessage(s, i.GuildID)
+	if err != nil {
+		utils.LogError("Error updating hiscore message: %v", err)
+	}
+
 	// Respond with success message
 	utils.RespondWithPrivateMessage(s, i, "Successfully stopped tracking the OSRS account: **%s**.", username)
 }
