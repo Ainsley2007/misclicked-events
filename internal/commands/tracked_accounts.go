@@ -26,29 +26,50 @@ func HandleTrackedAccountsCommand(s *discordgo.Session, i *discordgo.Interaction
 	}
 
 	currentCompetition := data.GetCurrentBoss(i.GuildID)
-	response := "**🔍 Currently Tracked Accounts (Event: " + currentCompetition + "):**\n\n"
+	description := ""
+
 	if len(currentCompetition) == 0 {
-		response = "**🔍 Currently Tracked Accounts:**\n\n"
-		response += "*No event is currently running.*\n"
+		description = "\n"
+	} else {
+		description = fmt.Sprintf("**Event:** %s\n\n", currentCompetition)
 	}
 
 	for _, account := range accounts {
 		if len(currentCompetition) > 0 {
 			activity, ok := account.Activities[currentCompetition]
 			if ok {
-				response += fmt.Sprintf(
-					"🔹 **%s**\n   └ **%s KC (Current Event)**: `%d`\n",
+				description += fmt.Sprintf(
+					"🔹 **%s**\n   └ **KC**: `%d`\n\n",
 					account.Name,
-					activity.Name,
 					activity.CurrentAmount-activity.StartAmount,
 				)
 			} else {
-				response += fmt.Sprintf("🔹 **%s**\n   └ *Not participating in the current event*\n", account.Name)
+				description += fmt.Sprintf("🔹 **%s**\n   └ *Not participating in the current event*\n", account.Name)
 			}
 		} else {
-			response += fmt.Sprintf("🔹 **%s**\n   └ *No active competition*\n", account.Name)
+			description += fmt.Sprintf("🔹 **%s**\n", account.Name)
 		}
 	}
 
-	utils.RespondWithMessage(s, i, "%s", response)
+	embed := &discordgo.MessageEmbed{
+		Thumbnail: &discordgo.MessageEmbedThumbnail{
+			URL: "https://runetracker.org/skills/overall.gif",
+		},
+		Title:       "Currently Tracked Accounts",
+		Description: description,
+		Color:       0x00ffcc,
+	}
+
+	// Respond with the embed
+	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Embeds: []*discordgo.MessageEmbed{embed},
+			Flags:  discordgo.MessageFlagsEphemeral,
+		},
+	})
+	if err != nil {
+		utils.LogError("Error sending embed", err)
+
+	}
 }

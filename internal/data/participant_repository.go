@@ -336,8 +336,8 @@ func TrackedAccounts(guildId, discordId string) ([]OSRSAccount, error) {
 		return nil, err
 	}
 
-	participant, ok := participants[discordId]
-	if !ok {
+	participant, exists := participants[discordId]
+	if !exists {
 		return nil, fmt.Errorf("we are currently not tracking any accounts for you")
 	}
 
