@@ -213,7 +213,7 @@ func GetParticipantsByActivityKCThreshold(guildID, activityName string) ([]Parti
 		totalKC, accountBreakdown := participant.TotalKCForActivity(activityName)
 
 		// Add participant to the result if their total KC exceeds the threshold
-		if totalKC > constants.Activities[activityName].Threshold {
+		if totalKC >= constants.Activities[activityName].Threshold {
 			result = append(result, ParticipantKC{
 				DiscordId:  participant.DiscordId,
 				TotalKC:    totalKC,

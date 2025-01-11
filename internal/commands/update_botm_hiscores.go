@@ -114,12 +114,12 @@ func UpdateHiscoreMessage(s *discordgo.Session, guildID string) error {
 			// Build account-specific details
 			accountDetails := ""
 			for _, account := range participant.AccountKCs {
-				accountDetails += fmt.Sprintf("└ **%s**: %d KC\n", account.AccountName, account.TotalKC)
+				accountDetails += fmt.Sprintf("\u00A0\u00A0\u00A0\u00A0 ┗ *%s: %d*\n", account.AccountName, account.TotalKC)
 			}
 
 			// Add the rank, mention, total KC, and account details to the description
 			embed.Description += fmt.Sprintf(
-				"%s **<@%s>** - Total KC: **%d**\n%s\n",
+				"%s **<@%s>** - **Total KC:** `%d`\n%s\n",
 				rankEmoji, participant.DiscordId, participant.TotalKC, accountDetails,
 			)
 		}
