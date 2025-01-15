@@ -97,18 +97,28 @@ func UpdateHiscoreMessage(s *discordgo.Session, guildID string) error {
 		embed.Description += "\n🚨 No participants have enough KC yet!\n"
 	} else {
 		embed.Description += "### Leaderboard:\n"
-		for rank, participant := range participantKC {
+		// Initialize rank tracking variables
+		rank := 0
+		previousKC := -1 // Set to a value that cannot match any valid TotalKC
+		currentRank := 1 // The rank being assigned to participants
+
+		for _, participant := range participantKC {
+			// Check if the current participant's TotalKC is different from the previous one
+			if participant.TotalKC != previousKC {
+				currentRank = rank + 1 // Update the current rank
+			}
+
 			// Assign appropriate emoji for ranks
 			var rankEmoji string
-			switch rank {
-			case 0:
-				rankEmoji = "🥇" // Gold Medal
+			switch currentRank {
 			case 1:
-				rankEmoji = "🥈" // Silver Medal
+				rankEmoji = "🥇" // Gold Medal
 			case 2:
+				rankEmoji = "🥈" // Silver Medal
+			case 3:
 				rankEmoji = "🥉" // Bronze Medal
 			default:
-				rankEmoji = fmt.Sprintf("%d.", rank+1) // Numeric ranking for 4th and beyond
+				rankEmoji = fmt.Sprintf("%d.", currentRank) // Numeric ranking for 4th and beyond
 			}
 
 			// Build account-specific details
@@ -122,7 +132,12 @@ func UpdateHiscoreMessage(s *discordgo.Session, guildID string) error {
 				"%s **<@%s>** - **Total KC:** `%d`\n%s\n",
 				rankEmoji, participant.DiscordId, participant.TotalKC, accountDetails,
 			)
+
+			// Update rank and previousKC
+			rank++
+			previousKC = participant.TotalKC
 		}
+
 	}
 
 	// Post or update the leaderboard message
