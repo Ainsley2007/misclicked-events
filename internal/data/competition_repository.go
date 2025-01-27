@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"misclicked-events/internal/constants"
 	"misclicked-events/internal/service"
+	"misclicked-events/internal/utils"
 	"sync"
 )
 
@@ -88,11 +89,23 @@ func EndCompetition(guildID string, competitionPassword string) error {
 		return fmt.Errorf("no event is currently running")
 	}
 
-	if competition.Password == competitionPassword {
-		clearCompetition(guildID)
-	} else {
+	if competition.Password != competitionPassword {
 		return fmt.Errorf("incorrect event password")
 	}
+
+	err = UpdateAccountsKC(guildID)
+	if err != nil {
+		utils.LogError("error when updating accounts", err)
+		return fmt.Errorf("error when updating accounts")
+	}
+
+	err = CalculatePointsForParticipants(guildID)
+	if err != nil {
+		utils.LogError("error when calculating points", err)
+		return fmt.Errorf("error when calculating points")
+	}
+
+	clearCompetition(guildID)
 
 	return nil
 }

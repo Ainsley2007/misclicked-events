@@ -2,9 +2,11 @@ package data
 
 import (
 	"fmt"
+	"maps"
 	"misclicked-events/internal/constants"
 	"misclicked-events/internal/service"
 	"misclicked-events/internal/utils"
+	"slices"
 	"sort"
 
 	"golang.org/x/text/cases"
@@ -198,11 +200,16 @@ func UpdateAccountsKC(guildID string) error {
 	return nil
 }
 
-func GetParticipantsByActivityKCThreshold(guildID, activityName string) ([]ParticipantKC, error) {
+func GetParticipantsByActivityKCThreshold(guildID string) ([]ParticipantKC, error) {
 	// Fetch participants for the given guild
 	participants, err := getParticipants(guildID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch participants: %w", err)
+	}
+
+	activityName := GetCurrentBoss(guildID)
+	if activityName == "" {
+		return nil, fmt.Errorf("no event found")
 	}
 
 	var result []ParticipantKC
@@ -228,33 +235,6 @@ func GetParticipantsByActivityKCThreshold(guildID, activityName string) ([]Parti
 	})
 
 	return result, nil
-}
-
-// SortParticipantsByPointsAndKC orders participants by points descending,
-// and if points are equal to 0, by total KC of their accounts descending.
-func SortParticipantsByPointsAndKC(participants []Participant) []Participant {
-	sort.SliceStable(participants, func(i, j int) bool {
-		// Compare by points first
-		if participants[i].Points != participants[j].Points {
-			return participants[i].Points > participants[j].Points
-		}
-
-		// If points are equal, compare by total KC
-		return getTotalKC(participants[i]) > getTotalKC(participants[j])
-	})
-
-	return participants
-}
-
-// getTotalKC calculates the total KC of all accounts for a participant
-func getTotalKC(participant Participant) int {
-	totalKC := 0
-	for _, account := range participant.LinkedOSRSAccounts {
-		for _, activity := range account.Activities {
-			totalKC += activity.CurrentAmount - activity.StartAmount
-		}
-	}
-	return totalKC
 }
 
 // createNewParticipant initializes a new participant with the given username
@@ -335,6 +315,21 @@ func fetchKc(username, bossId string) (int, error) {
 	return max(0, kc), nil
 }
 
+func GetParticipantsInOrder(guildID string) ([]Participant, error) {
+	participants, err := getParticipants(guildID)
+	if err != nil {
+		return []Participant{}, err
+	}
+
+	parts := slices.Collect(maps.Values(participants))
+
+	sort.Slice(parts, func(i, j int) bool {
+		return parts[i].Points > parts[j].Points
+	})
+
+	return parts, nil
+}
+
 func UntrackAccount(guildID, username, discordId string) error {
 	participants, err := getParticipants(guildID)
 	if err != nil {
@@ -382,4 +377,61 @@ func TrackedAccounts(guildId, discordId string) ([]OSRSAccount, error) {
 	}
 
 	return accounts, nil
+}
+
+// CalculatePointsForParticipants calculates and assigns points to participants based on their TotalKC.
+func CalculatePointsForParticipants(guildID string) error {
+	// Get participants above the threshold, sorted by TotalKC (descending)
+	participantsAboveThreshold, err := GetParticipantsByActivityKCThreshold(guildID)
+	if err != nil {
+		return fmt.Errorf("failed to get participants above the threshold: %w", err)
+	}
+
+	// Retrieve the full participants map
+	participants, err := getParticipants(guildID)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve participants: %w", err)
+	}
+
+	// Define the point system
+	pointSystem := []int{12, 9, 7, 5, 4, 3, 3, 2, 2, 2} // Points for ranks 1 through 10
+
+	// Track current rank and previous KC
+	currentRank := 1
+	previousKC := -1
+	pointsToAward := 0
+
+	// Iterate through the participants and calculate points
+	for i, participantKC := range participantsAboveThreshold {
+		// If the current participant's TotalKC differs from the previous, update rank and points
+		if participantKC.TotalKC != previousKC {
+			currentRank = i + 1
+
+			// Determine points to award based on rank
+			if currentRank <= len(pointSystem) {
+				pointsToAward = pointSystem[currentRank-1]
+			} else {
+				pointsToAward = 1 // Default point for ranks beyond the defined system
+			}
+		}
+
+		// Update the points for the participant in the map
+		if participant, exists := participants[participantKC.DiscordId]; exists {
+			participant.Points += pointsToAward
+			participants[participantKC.DiscordId] = participant
+		} else {
+			return fmt.Errorf("participant with Discord ID %s not found in map", participantKC.DiscordId)
+		}
+
+		// Update the previous KC to the current one
+		previousKC = participantKC.TotalKC
+	}
+
+	// Save the updated participants map
+	err = saveParticipantsData(guildID, participants)
+	if err != nil {
+		return fmt.Errorf("failed to save updated participants: %w", err)
+	}
+
+	return nil
 }

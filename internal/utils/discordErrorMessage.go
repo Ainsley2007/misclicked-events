@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -22,6 +23,15 @@ func RespondWithPrivateMessage(s *discordgo.Session, i *discordgo.InteractionCre
 	})
 	if err != nil {
 		LogError("Failed to send private embedded message", err)
+	}
+}
+
+func EditResponseMessage(s *discordgo.Session, i *discordgo.InteractionCreate, content string) {
+	_, err := s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+		Content: &content,
+	})
+	if err != nil {
+		fmt.Printf("Error editing response message: %v\n", err)
 	}
 }
 

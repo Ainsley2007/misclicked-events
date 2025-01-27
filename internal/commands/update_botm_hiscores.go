@@ -68,7 +68,7 @@ func UpdateHiscoreMessage(s *discordgo.Session, guildID string) error {
 	}
 
 	// Fetch the leaderboard data
-	participantKC, err := data.GetParticipantsByActivityKCThreshold(guildID, currentActivity)
+	participantKC, err := data.GetParticipantsByActivityKCThreshold(guildID)
 	if err != nil {
 		return fmt.Errorf("error fetching participants: %w", err)
 	}
@@ -138,6 +138,7 @@ func UpdateHiscoreMessage(s *discordgo.Session, guildID string) error {
 			previousKC = participant.TotalKC
 		}
 
+		embed.Description += fmt.Sprintf("_Threshold: %dkc_\n", constants.Activities[currentActivity].Threshold)
 	}
 
 	// Post or update the leaderboard message
