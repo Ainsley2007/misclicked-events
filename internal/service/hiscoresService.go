@@ -65,7 +65,7 @@ func FetchHiscore(username string) (map[string]Skill, map[string]Activity, error
 		"Bounty Hunter (Legacy) - Hunter", "Bounty Hunter (Legacy) - Rogue", "Clue Scrolls (all)",
 		"Clue Scrolls (beginner)", "Clue Scrolls (easy)", "Clue Scrolls (medium)", "Clue Scrolls (hard)",
 		"Clue Scrolls (elite)", "Clue Scrolls (master)", "LMS - Rank", "PvP Arena - Rank",
-		"Soul Wars Zeal", "Rifts closed", "Colosseum Glory", "Abyssal Sire", "Alchemical Hydra",
+		"Soul Wars Zeal", "Rifts closed", "Colosseum Glory", "Collections Logged", "Abyssal Sire", "Alchemical Hydra",
 		"Amoxliatl", "Araxxor", "Artio", "Barrows Chests", "Bryophyta", "Callisto", "Cal'varion",
 		"Cerberus", "Chambers of Xeric", "Chambers of Xeric: Challenge Mode", "Chaos Elemental",
 		"Chaos Fanatic", "Commander Zilyana", "Corporeal Beast", "Crazy Archaeologist",
