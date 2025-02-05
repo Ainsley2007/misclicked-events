@@ -307,8 +307,8 @@ func fetchKc(username, bossId string) (int, error) {
 
 	kc := 0
 	for _, activityName := range constants.Activities[bossId].BossNames {
-		if activity, exists := activities[activityName]; exists {
-			kc += max(0, activity.Amount)
+		if activity, exists := service.FindActivity(activities, activityName); exists {
+			kc += max(0, activity.Score)
 		}
 	}
 
