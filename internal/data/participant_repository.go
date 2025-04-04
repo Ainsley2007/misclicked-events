@@ -435,3 +435,37 @@ func CalculatePointsForParticipants(guildID string) error {
 
 	return nil
 }
+
+func RenameAccount(guildID, oldUsername, newUsername, discordId string) error {
+	participants, err := getParticipants(guildID)
+	if err != nil {
+		return err
+	}
+
+	participant, ok := participants[discordId]
+	if !ok {
+		return fmt.Errorf("we are currently not tracking any accounts for you")
+	}
+
+	oldUsernameKey := cases.Fold().String(oldUsername)
+	account, ok := participant.LinkedOSRSAccounts[oldUsernameKey]
+	if !ok {
+		return fmt.Errorf("no account found with username: %s", oldUsername)
+	}
+
+	newUsernameKey := cases.Fold().String(newUsername)
+	if _, exists := participant.LinkedOSRSAccounts[newUsernameKey]; exists {
+		return fmt.Errorf("you are already tracking an account with username: %s", newUsername)
+	}
+
+	// Update the account name
+	account.Name = newUsername
+	delete(participant.LinkedOSRSAccounts, oldUsernameKey)
+	participant.LinkedOSRSAccounts[newUsernameKey] = account
+
+	// Update the participant in the map
+	participants[discordId] = participant
+
+	// Save the updated data
+	return saveParticipantsData(guildID, participants)
+}

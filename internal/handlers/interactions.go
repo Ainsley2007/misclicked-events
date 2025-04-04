@@ -21,6 +21,8 @@ func InteractionCreateHandler(s *discordgo.Session, i *discordgo.InteractionCrea
 		commands.HandleStartActivityCommand(s, i)
 	case "end":
 		commands.HandleEndActivityCommand(s, i)
+	case "rename":
+		commands.HandleRenameAccountCommand(s, i)
 	default:
 		utils.LogError("Unknown command", nil)
 	}
