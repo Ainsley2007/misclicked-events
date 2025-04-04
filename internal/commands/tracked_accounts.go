@@ -14,14 +14,26 @@ var TrackedAccountsCommand = &discordgo.ApplicationCommand{
 }
 
 func HandleTrackedAccountsCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	// Defer the response immediately
+	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Flags: discordgo.MessageFlagsEphemeral,
+		},
+	})
+	if err != nil {
+		utils.LogError("Error deferring response", err)
+		return
+	}
+
 	accounts, err := data.TrackedAccounts(i.GuildID, i.Member.User.ID)
 	if err != nil {
-		utils.RespondWithError(s, i, err)
+		utils.EditResponseError(s, i, err)
 		return
 	}
 
 	if len(accounts) == 0 {
-		utils.RespondWithPrivateMessage(s, i, "You have no tracked accounts at the moment. Use `/track` to start tracking one!")
+		utils.EditResponseMessage(s, i, "You have no tracked accounts at the moment. Use `/track` to start tracking one!")
 		return
 	}
 
@@ -60,16 +72,12 @@ func HandleTrackedAccountsCommand(s *discordgo.Session, i *discordgo.Interaction
 		Color:       0x00ffcc,
 	}
 
-	// Respond with the embed
-	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Embeds: []*discordgo.MessageEmbed{embed},
-			Flags:  discordgo.MessageFlagsEphemeral,
-		},
+	// Edit the deferred response with the embed
+	embeds := []*discordgo.MessageEmbed{embed}
+	_, err = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+		Embeds: &embeds,
 	})
 	if err != nil {
-		utils.LogError("Error sending embed", err)
-
+		utils.LogError("Error editing response", err)
 	}
 }

@@ -34,8 +34,20 @@ var ConfigCommand = &discordgo.ApplicationCommand{
 }
 
 func HandleConfigCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	// Defer the response immediately
+	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Flags: discordgo.MessageFlagsEphemeral,
+		},
+	})
+	if err != nil {
+		utils.LogError("Error deferring response", err)
+		return
+	}
+
 	if !utils.IsAdmin(i) {
-		utils.RespondWithError(s, i, fmt.Errorf("you don't have the required permissions"))
+		utils.EditResponseError(s, i, fmt.Errorf("you don't have the required permissions"))
 		return
 	}
 
@@ -43,10 +55,11 @@ func HandleConfigCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	hiscoreChannelID := i.ApplicationCommandData().Options[1].ChannelValue(s)
 	categoryChannelID := i.ApplicationCommandData().Options[2].ChannelValue(s)
 
-	err := data.UpdateConfig(i.GuildID, rankingChannelID.ID, hiscoreChannelID.ID, categoryChannelID.ID)
+	err = data.UpdateConfig(i.GuildID, rankingChannelID.ID, hiscoreChannelID.ID, categoryChannelID.ID)
 	if err != nil {
-		utils.RespondWithError(s, i, fmt.Errorf("something went wrong while trying to update the config"))
+		utils.EditResponseError(s, i, fmt.Errorf("something went wrong while trying to update the config"))
+		return
 	}
 
-	utils.RespondWithPrivateMessage(s, i, "%s", "Config saved!")
+	utils.EditResponseMessage(s, i, "Config saved!")
 }

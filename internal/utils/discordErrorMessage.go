@@ -77,3 +77,16 @@ func RespondWithError(s *discordgo.Session, i *discordgo.InteractionCreate, err 
 		LogError("Failed to send error embedded message", errSend)
 	}
 }
+
+func EditResponseError(s *discordgo.Session, i *discordgo.InteractionCreate, err error) {
+	if err == nil {
+		err = fmt.Errorf("unknown error occurred")
+	}
+	content := fmt.Sprintf("⚠️ **Error**\n%s", err.Error())
+	_, err = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+		Content: &content,
+	})
+	if err != nil {
+		LogError("Error editing response", err)
+	}
+}

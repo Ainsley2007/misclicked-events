@@ -29,9 +29,21 @@ var RenameAccountCommand = &discordgo.ApplicationCommand{
 }
 
 func HandleRenameAccountCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	// Defer the response immediately
+	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
+		Data: &discordgo.InteractionResponseData{
+			Flags: discordgo.MessageFlagsEphemeral,
+		},
+	})
+	if err != nil {
+		utils.LogError("Error deferring response", err)
+		return
+	}
+
 	options := i.ApplicationCommandData().Options
 	if len(options) < 2 {
-		utils.RespondWithError(s, i, fmt.Errorf("please provide both the old and new usernames"))
+		utils.EditResponseError(s, i, fmt.Errorf("please provide both the old and new usernames"))
 		return
 	}
 
@@ -40,13 +52,13 @@ func HandleRenameAccountCommand(s *discordgo.Session, i *discordgo.InteractionCr
 
 	// Verify the new username exists in OSRS
 	if !service.CheckIfPlayerExists(newUsername) {
-		utils.RespondWithError(s, i, fmt.Errorf("could not find an OSRS account with the username: %s", newUsername))
+		utils.EditResponseError(s, i, fmt.Errorf("could not find an OSRS account with the username: %s", newUsername))
 		return
 	}
 
-	err := data.RenameAccount(i.GuildID, oldUsername, newUsername, i.Member.User.ID)
+	err = data.RenameAccount(i.GuildID, oldUsername, newUsername, i.Member.User.ID)
 	if err != nil {
-		utils.RespondWithError(s, i, fmt.Errorf("could not rename the account: %w", err))
+		utils.EditResponseError(s, i, fmt.Errorf("could not rename the account: %w", err))
 		return
 	}
 
@@ -59,5 +71,5 @@ func HandleRenameAccountCommand(s *discordgo.Session, i *discordgo.InteractionCr
 	}
 
 	response := fmt.Sprintf("Successfully renamed account from **%s** to **%s**", oldUsername, newUsername)
-	utils.RespondWithPrivateMessage(s, i, "%s", response)
+	utils.EditResponseMessage(s, i, response)
 }
