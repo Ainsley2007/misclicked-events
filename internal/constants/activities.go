@@ -2,7 +2,7 @@ package constants
 
 var Activities = map[string]ActivityDetails{
 	"COLO": {
-		Threshold:     5,
+		Threshold:     1,
 		BossNames:     []string{"Sol Heredit"},
 		BossThumbnail: "https://www.runescape.com/img/rsp777/game_icon_solheredit.png?2",
 	},
@@ -26,7 +26,7 @@ var Activities = map[string]ActivityDetails{
 		BossThumbnail: "https://www.runescape.com/img/rsp777/game_icon_thehueycoatl.png?2",
 	},
 	"Inferno": {
-		Threshold:     5,
+		Threshold:     1,
 		BossNames:     []string{"TzKal-Zuk"},
 		BossThumbnail: "https://www.runescape.com/img/rsp777/game_icon_tzkalzuk.png?2",
 	},
