@@ -17,16 +17,16 @@ RUN go build -o bot ./cmd/misclickedevents
 # Final minimal image
 FROM debian:bookworm-slim
 
-# Add this to install root CAs
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && \
-    rm -rf /var/lib/apt/lists/*
-
+# Install CA certificates for HTTPS to work
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
 WORKDIR /app
 
-# Copy binary and assets
+# Copy built binary only
 COPY --from=builder /app/bot /app/bot
 
-# Set env and run
+# Entrypoint
 CMD ["./bot"]
