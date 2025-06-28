@@ -11,7 +11,6 @@ import (
 )
 
 func UpdateBOTMHiscores(s *discordgo.Session) {
-	// Do an initial run when the bot starts
 	updateUsers(s)
 
 	ticker := time.NewTicker(60 * time.Minute)
