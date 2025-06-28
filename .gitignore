@@ -14,7 +14,6 @@ assets/*.json
 *.log
 *.test
 *.tmp
-/go.sum
 /go.work
 /go.work.sum
 /vendor/
