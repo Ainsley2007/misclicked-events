@@ -17,6 +17,11 @@ RUN go build -o bot ./cmd/misclickedevents
 # Final minimal image
 FROM debian:bookworm-slim
 
+# Add this to install root CAs
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+
 # Set working directory
 WORKDIR /app
 
@@ -24,5 +29,4 @@ WORKDIR /app
 COPY --from=builder /app/bot /app/bot
 
 # Set env and run
-ENV DISCORD_BOT_TOKEN=changeme
 CMD ["./bot"]
