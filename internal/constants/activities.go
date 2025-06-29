@@ -60,6 +60,10 @@ var Activities = map[string]ActivityDetails{
 		BossNames:     []string{"Zulrah"},
 		BossThumbnail: "https://www.runescape.com/img/rsp777/game_icon_zulrah.png?2",
 	},
+	"DT2": {
+		Threshold: 25,
+		BossNames: []string{"Vardorvis", "Duke Sucellus", "The Whisperer", "The Leviathan"},
+	},
 }
 
 type ActivityDetails struct {
