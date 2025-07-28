@@ -33,6 +33,7 @@ var StartActivityCommand = &discordgo.ApplicationCommand{
 				{Name: "TOB", Value: "TOB"},
 				{Name: "Zulrah", Value: "Zulrah"},
 				{Name: "DT2", Value: "DT2"},
+				{Name: "Mokha", Value: "MOKHA"}
 			},
 		},
 		{

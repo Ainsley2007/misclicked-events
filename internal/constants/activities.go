@@ -64,6 +64,11 @@ var Activities = map[string]ActivityDetails{
 		Threshold: 25,
 		BossNames: []string{"Vardorvis", "Duke Sucellus", "The Whisperer", "The Leviathan"},
 	},
+	"MOKHA": {
+		Threshold: 5,
+		BossNames: []string{"Doom of Mokhaiotl"},
+		BossThumbnail: "https://www.runescape.com/img/rsp777/game_icon_doomofmokhaiotl.png?2"
+	}
 }
 
 type ActivityDetails struct {
