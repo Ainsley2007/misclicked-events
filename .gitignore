@@ -36,3 +36,5 @@ Thumbs.db
 
 # Ignore build artifacts (if you build the bot into a binary)
 build/
+
+*.db

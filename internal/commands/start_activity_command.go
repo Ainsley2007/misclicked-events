@@ -58,11 +58,9 @@ func HandleStartActivityCommand(s *discordgo.Session, i *discordgo.InteractionCr
 		return
 	}
 
-	// Get the selected choice
 	choice := i.ApplicationCommandData().Options[0].StringValue()
 	password := i.ApplicationCommandData().Options[1].StringValue()
 
-	// Defer the response to indicate processing
 	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 	})
@@ -71,10 +69,8 @@ func HandleStartActivityCommand(s *discordgo.Session, i *discordgo.InteractionCr
 		return
 	}
 
-	// Perform the long-running operation
 	err = data.StartCompetition(i.GuildID, choice, password)
 	if err != nil {
-		// Edit the deferred response to indicate an error
 		errorMessage := "Something went wrong trying to start this activity."
 		_, err := s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
 			Content: &errorMessage,
@@ -87,7 +83,6 @@ func HandleStartActivityCommand(s *discordgo.Session, i *discordgo.InteractionCr
 
 	updateCategoryChannelName(s, i.GuildID, choice)
 
-	// Edit the deferred response with the final result
 	successMessage := fmt.Sprintf(
 		"Activity selected: **%s**, now tracking kc for: **%s**",
 		choice,
@@ -103,8 +98,9 @@ func HandleStartActivityCommand(s *discordgo.Session, i *discordgo.InteractionCr
 }
 
 func updateCategoryChannelName(s *discordgo.Session, guildID, currentBoss string) {
-	config, err := data.GetBotConfig(guildID)
+	config, err := data.ConfigRepo.FetchConfig(guildID)
 	if err != nil {
+		fmt.Println("error fetching bot configuration: %w", err)
 		return
 	}
 

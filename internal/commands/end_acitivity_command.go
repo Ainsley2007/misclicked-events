@@ -60,7 +60,7 @@ func HandleEndActivityCommand(s *discordgo.Session, i *discordgo.InteractionCrea
 }
 
 func updateRankingMessage(s *discordgo.Session, guildID string) error {
-	config, err := data.GetBotConfig(guildID)
+	config, err := data.ConfigRepo.FetchConfig(guildID)
 	if err != nil {
 		return fmt.Errorf("error fetching bot configuration: %w", err)
 	}
@@ -119,7 +119,7 @@ func updateRankingMessage(s *discordgo.Session, guildID string) error {
 				return fmt.Errorf("error sending new ranking message: %w", err)
 			}
 
-			data.UpdateRankingMessageID(guildID, newMessage.ID)
+			data.ConfigRepo.EditRankingMessageID(guildID, newMessage.ID)
 		}
 	} else {
 		newMessage, err := s.ChannelMessageSendEmbed(config.RankingChannelID, embed)
@@ -127,7 +127,7 @@ func updateRankingMessage(s *discordgo.Session, guildID string) error {
 			return fmt.Errorf("error sending ranking message: %w", err)
 		}
 
-		data.UpdateRankingMessageID(guildID, newMessage.ID)
+		data.ConfigRepo.EditRankingMessageID(guildID, newMessage.ID)
 	}
 
 	return nil

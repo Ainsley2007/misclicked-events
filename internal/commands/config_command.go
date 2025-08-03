@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"misclicked-events/internal/data"
+	"misclicked-events/internal/data/datasource/sqlite"
 	"misclicked-events/internal/utils"
 
 	"github.com/bwmarrin/discordgo"
@@ -34,7 +35,6 @@ var ConfigCommand = &discordgo.ApplicationCommand{
 }
 
 func HandleConfigCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	// Defer the response immediately
 	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
@@ -55,7 +55,12 @@ func HandleConfigCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	hiscoreChannelID := i.ApplicationCommandData().Options[1].ChannelValue(s)
 	categoryChannelID := i.ApplicationCommandData().Options[2].ChannelValue(s)
 
-	err = data.UpdateConfig(i.GuildID, rankingChannelID.ID, hiscoreChannelID.ID, categoryChannelID.ID)
+	err = data.ConfigRepo.SaveConfig(&sqlite.Config{
+		ServerID:          i.GuildID,
+		RankingChannelID:  rankingChannelID.ID,
+		HiscoreChannelID:  hiscoreChannelID.ID,
+		CategoryChannelID: categoryChannelID.ID,
+	})
 	if err != nil {
 		utils.EditResponseError(s, i, fmt.Errorf("something went wrong while trying to update the config"))
 		return

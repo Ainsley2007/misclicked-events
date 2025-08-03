@@ -8,24 +8,33 @@ import (
 
 	"misclicked-events/internal/commands"
 	"misclicked-events/internal/config"
+	"misclicked-events/internal/data"
 	"misclicked-events/internal/handlers"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 func main() {
+	if err := data.Init("./data.db"); err != nil {
+		fmt.Println("could not init data layer:", err)
+		return
+	}
+
 	token := config.GetToken()
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
-		fmt.Println("Error creating Discord session,", err)
+		fmt.Println("Error creating Discord session: ", err)
 		return
 	}
 
 	dg.AddHandler(handlers.InteractionCreateHandler)
 
+	readyFn := handlers.MakeReadyHandler()
+	dg.AddHandler(readyFn)
+
 	err = dg.Open()
 	if err != nil {
-		fmt.Println("Error opening connection,", err)
+		fmt.Println("Error opening connection: ", err)
 		return
 	}
 
