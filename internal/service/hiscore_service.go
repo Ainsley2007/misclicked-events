@@ -6,7 +6,6 @@ import (
 	"net/http"
 )
 
-// Skill represents a single skill object.
 type Skill struct {
 	ID    int    `json:"id"`
 	Name  string `json:"name"`
@@ -15,7 +14,6 @@ type Skill struct {
 	XP    int    `json:"xp"`
 }
 
-// Activity represents a single activity object.
 type Activity struct {
 	ID    int    `json:"id"`
 	Name  string `json:"name"`

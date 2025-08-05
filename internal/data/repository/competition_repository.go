@@ -5,21 +5,18 @@ import (
 )
 
 type CompetitionRepository struct {
-	ds sqlite.CompetitionDataSource
+	botmDS sqlite.BotmDataSource
+	kotsDS sqlite.KotsDataSource
 }
 
-func NewCompetitionRepository(ds sqlite.CompetitionDataSource) *CompetitionRepository {
-	return &CompetitionRepository{ds}
+func NewCompetitionRepository(botmDS sqlite.BotmDataSource, kotsDS sqlite.KotsDataSource) *CompetitionRepository {
+	return &CompetitionRepository{botmDS: botmDS, kotsDS: kotsDS}
 }
 
-func (r *CompetitionRepository) FetchCompetition(serverID string) (*sqlite.Competition, error) {
-	return r.ds.GetCompetition(serverID)
+func (r *CompetitionRepository) GetBotm(serverID string) (*sqlite.Botm, error) {
+	return r.botmDS.GetCurrentBotm(serverID)
 }
 
-func (r *CompetitionRepository) StartCompetition(c *sqlite.Competition) error {
-	return r.ds.UpsertCompetition(c)
-}
-
-func (r *CompetitionRepository) EndCompetition(serverID string) error {
-	return r.ds.DeleteCompetition(serverID)
+func (r *CompetitionRepository) StartBotm(serverID, currentBoss, password string) error {
+	return r.botmDS.StartNewBotm(serverID, currentBoss, password)
 }

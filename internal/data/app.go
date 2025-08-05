@@ -29,8 +29,9 @@ func Init(dbPath string) error {
 	cDS := sqlite.NewConfigDataSource(DB)
 	ConfigRepo = repository.NewConfigRepository(cDS)
 
-	compDS := sqlite.NewCompetitionDataSource(DB)
-	CompetitionRepo = repository.NewCompetitionRepository(compDS)
+	botmDS := sqlite.NewBotmDataSource(DB)
+	kotsDS := sqlite.NewKotsDataSource(DB)
+	CompetitionRepo = repository.NewCompetitionRepository(botmDS, kotsDS)
 
 	return nil
 }

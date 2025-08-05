@@ -69,9 +69,11 @@ func HandleStartActivityCommand(s *discordgo.Session, i *discordgo.InteractionCr
 		return
 	}
 
-	err = data.StartCompetition(i.GuildID, choice, password)
+	err = data.CompetitionRepo.StartBotm(i.GuildID, choice, password)
+
+	//err = data.StartCompetition(i.GuildID, choice, password)
 	if err != nil {
-		errorMessage := "Something went wrong trying to start this activity."
+		errorMessage := fmt.Sprint("Something went wrong trying to start this activity: ", err)
 		_, err := s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
 			Content: &errorMessage,
 		})
