@@ -3,7 +3,7 @@ package data
 import (
 	"fmt"
 	"misclicked-events/internal/constants"
-	"misclicked-events/internal/service"
+	"misclicked-events/internal/data/repository"
 	"misclicked-events/internal/utils"
 	"sync"
 )
@@ -36,7 +36,7 @@ func lookupInitialKcForParticipantsAsync(guildID, bossId string) {
 				defer wg.Done() // Decrement the counter when the goroutine completes
 
 				// Fetch hiscores for the account
-				_, activities, err := service.FetchHiscore(accountName)
+				_, activities, err := HiscoreRepo.FetchHiscore(accountName)
 				if err != nil {
 					fmt.Printf("Error fetching hiscore for account %s: %v\n", accountName, err)
 					return
@@ -44,7 +44,7 @@ func lookupInitialKcForParticipantsAsync(guildID, bossId string) {
 
 				kc := 0
 				for _, act := range constants.Activities[bossId].BossNames {
-					activity, exists := service.FindActivity(activities, act)
+					activity, exists := repository.FindActivity(activities, act)
 					if !exists {
 						fmt.Printf("No activity found for boss %s for account %s\n", bossId, accountName)
 						continue
@@ -79,17 +79,17 @@ func lookupInitialKcForParticipantsAsync(guildID, bossId string) {
 }
 
 func EndCompetition(guildID string, competitionPassword string) error {
-
-	competition, err := getCompetitionData(guildID)
+	// Get current BOTM from database
+	botm, err := CompetitionRepo.GetBotm(guildID)
 	if err != nil {
-		return err
+		return fmt.Errorf("error getting current BOTM: %w", err)
 	}
 
-	if len(competition.CurrentBoss) < 1 {
+	if botm == nil {
 		return fmt.Errorf("no event is currently running")
 	}
 
-	if competition.Password != competitionPassword {
+	if botm.Password != competitionPassword {
 		return fmt.Errorf("incorrect event password")
 	}
 
@@ -105,7 +105,11 @@ func EndCompetition(guildID string, competitionPassword string) error {
 		return fmt.Errorf("error when calculating points")
 	}
 
-	clearCompetition(guildID)
+	// Stop the BOTM using the new database method
+	err = CompetitionRepo.StopBotm(guildID)
+	if err != nil {
+		return fmt.Errorf("error stopping BOTM: %w", err)
+	}
 
 	return nil
 }

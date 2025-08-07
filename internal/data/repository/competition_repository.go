@@ -13,10 +13,22 @@ func NewCompetitionRepository(botmDS sqlite.BotmDataSource, kotsDS sqlite.KotsDa
 	return &CompetitionRepository{botmDS: botmDS, kotsDS: kotsDS}
 }
 
+func (r *CompetitionRepository) HasRunningBotmCompetition(serverID string) (bool, error) {
+	competition, err := r.botmDS.GetCurrentBotm(serverID)
+	if err != nil {
+		return false, err
+	}
+	return competition != nil, nil
+}
+
 func (r *CompetitionRepository) GetBotm(serverID string) (*sqlite.Botm, error) {
 	return r.botmDS.GetCurrentBotm(serverID)
 }
 
 func (r *CompetitionRepository) StartBotm(serverID, currentBoss, password string) error {
-	return r.botmDS.StartNewBotm(serverID, currentBoss, password)
+	return r.botmDS.Start(serverID, currentBoss, password)
+}
+
+func (r *CompetitionRepository) StopBotm(serverID string) error {
+	return r.botmDS.Stop(serverID)
 }

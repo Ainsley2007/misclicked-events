@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"maps"
 	"misclicked-events/internal/constants"
-	"misclicked-events/internal/service"
+	"misclicked-events/internal/data/repository"
 	"misclicked-events/internal/utils"
 	"slices"
 	"sort"
@@ -96,7 +96,12 @@ func TrackAccount(guildID, username, discordId string) error {
 
 	if !exists {
 		// Validate the username
-		if !service.CheckIfPlayerExists(username) {
+		exists, err := HiscoreRepo.CheckIfPlayerExists(username)
+		if err != nil {
+			utils.LogError("Failed to check if player exists", err)
+			return fmt.Errorf("failed to validate username: %w", err)
+		}
+		if !exists {
 			err := fmt.Errorf("could not find an OSRS account with the username: %s", username)
 			utils.LogError("Invalid username", err)
 			return err
@@ -112,7 +117,12 @@ func TrackAccount(guildID, username, discordId string) error {
 		participants[discordId] = participant
 	} else {
 		// Validate the username
-		if !service.CheckIfPlayerExists(username) {
+		exists, err := HiscoreRepo.CheckIfPlayerExists(username)
+		if err != nil {
+			utils.LogError("Failed to check if player exists", err)
+			return fmt.Errorf("failed to validate username: %w", err)
+		}
+		if !exists {
 			err := fmt.Errorf("could not find an OSRS account with the username: %s", username)
 			utils.LogError("Invalid username", err)
 			return err
@@ -300,14 +310,14 @@ func addAccountToParticipant(participant *Participant, username, currentBoss str
 
 // fetchKc calculates the total KC for the given username and boss.
 func fetchKc(username, bossId string) (int, error) {
-	_, activities, err := service.FetchHiscore(username)
+	_, activities, err := HiscoreRepo.FetchHiscore(username)
 	if err != nil {
 		return 0, fmt.Errorf("failed to fetch hiscores for %s: %w", username, err)
 	}
 
 	kc := 0
 	for _, activityName := range constants.Activities[bossId].BossNames {
-		if activity, exists := service.FindActivity(activities, activityName); exists {
+		if activity, exists := repository.FindActivity(activities, activityName); exists {
 			kc += max(0, activity.Score)
 		}
 	}

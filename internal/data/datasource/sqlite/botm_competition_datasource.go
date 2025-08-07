@@ -6,6 +6,8 @@ import (
 
 type BotmDataSource interface {
 	StartNewBotm(serverID, boss, password string) error
+	Start(serverID, boss, password string) error
+	Stop(serverID string) error
 	GetCurrentBotm(serverID string) (*Botm, error)
 }
 
@@ -34,6 +36,32 @@ func (ds *botmDS) GetCurrentBotm(serverID string) (*Botm, error) {
 		return nil, err
 	}
 	return &b, nil
+}
+
+func (ds *botmDS) Start(serverID, boss, password string) error {
+	_, err := ds.db.Exec(
+		`INSERT INTO botm
+            (server_id, current_boss, password, status)
+          VALUES (?, ?, ?, ?)`,
+		serverID,
+		boss,
+		password,
+		"active",
+	)
+	return err
+}
+
+func (ds *botmDS) Stop(serverID string) error {
+	_, err := ds.db.Exec(
+		`UPDATE botm
+            SET status = ?
+          WHERE server_id = ? 
+            AND status = ?`,
+		"done",
+		serverID,
+		"active",
+	)
+	return err
 }
 
 func (ds *botmDS) StartNewBotm(serverID, boss, password string) error {

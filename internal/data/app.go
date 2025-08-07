@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 
+	"misclicked-events/internal/data/datasource/api"
 	"misclicked-events/internal/data/datasource/sqlite"
 	"misclicked-events/internal/data/repository"
 )
@@ -13,6 +14,7 @@ var (
 	ServerRepo      *repository.ServerRepository
 	ConfigRepo      *repository.ConfigRepository
 	CompetitionRepo *repository.CompetitionRepository
+	HiscoreRepo     *repository.HiscoreRepository
 )
 
 func Init(dbPath string) error {
@@ -32,6 +34,10 @@ func Init(dbPath string) error {
 	botmDS := sqlite.NewBotmDataSource(DB)
 	kotsDS := sqlite.NewKotsDataSource(DB)
 	CompetitionRepo = repository.NewCompetitionRepository(botmDS, kotsDS)
+
+	// wire up hiscore repository
+	hiscoreDS := api.NewHiscoreDataSource()
+	HiscoreRepo = repository.NewHiscoreRepository(hiscoreDS)
 
 	return nil
 }

@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"misclicked-events/internal/data"
-	"misclicked-events/internal/service"
 	"misclicked-events/internal/utils"
 
 	"github.com/bwmarrin/discordgo"
@@ -50,8 +49,12 @@ func HandleRenameAccountCommand(s *discordgo.Session, i *discordgo.InteractionCr
 	oldUsername := options[0].StringValue()
 	newUsername := options[1].StringValue()
 
-	// Verify the new username exists in OSRS
-	if !service.CheckIfPlayerExists(newUsername) {
+	exists, err := data.HiscoreRepo.CheckIfPlayerExists(newUsername)
+	if err != nil {
+		utils.EditResponseError(s, i, fmt.Errorf("failed to validate username: %w", err))
+		return
+	}
+	if !exists {
 		utils.EditResponseError(s, i, fmt.Errorf("could not find an OSRS account with the username: %s", newUsername))
 		return
 	}
@@ -62,7 +65,6 @@ func HandleRenameAccountCommand(s *discordgo.Session, i *discordgo.InteractionCr
 		return
 	}
 
-	// Update the hiscore message if there's an ongoing event
 	if ongoingEvent := checkOngoingEvent(i.GuildID); ongoingEvent != "" {
 		err = UpdateHiscoreMessage(s, i.GuildID)
 		if err != nil {

@@ -25,13 +25,11 @@ func RegisterCommands(s *discordgo.Session, force bool) {
 		return
 	}
 
-	// Check if re-registration is necessary
 	if !force && commandsAreEqual(existingCommands, commands) {
 		fmt.Println("Commands are already up-to-date. Skipping registration.")
 		return
 	}
 
-	// Bulk overwrite commands
 	_, err = s.ApplicationCommandBulkOverwrite(s.State.User.ID, "", commands)
 	if err != nil {
 		utils.LogError("Error overwriting commands:", err)
@@ -45,25 +43,21 @@ func commandsAreEqual(existing []*discordgo.ApplicationCommand, new []*discordgo
 		return false
 	}
 
-	// Create a map of existing commands for easier lookup
 	existingMap := make(map[string]*discordgo.ApplicationCommand)
 	for _, cmd := range existing {
 		existingMap[cmd.Name] = cmd
 	}
 
 	for _, newCmd := range new {
-		// Check if the command exists in the map
 		existingCmd, ok := existingMap[newCmd.Name]
 		if !ok {
-			return false // Command is missing
+			return false
 		}
 
-		// Compare descriptions
 		if newCmd.Description != existingCmd.Description {
 			return false
 		}
 
-		// Compare options
 		if !optionsAreEqual(newCmd.Options, existingCmd.Options) {
 			return false
 		}
@@ -77,7 +71,6 @@ func optionsAreEqual(newOpts []*discordgo.ApplicationCommandOption, existingOpts
 		return false
 	}
 
-	// Compare each option
 	for i, newOpt := range newOpts {
 		existingOpt := existingOpts[i]
 		if newOpt.Name != existingOpt.Name ||
@@ -87,7 +80,6 @@ func optionsAreEqual(newOpts []*discordgo.ApplicationCommandOption, existingOpts
 			return false
 		}
 
-		// Compare choices (if applicable)
 		if !choicesAreEqual(newOpt.Choices, existingOpt.Choices) {
 			return false
 		}
@@ -101,7 +93,6 @@ func choicesAreEqual(newChoices []*discordgo.ApplicationCommandOptionChoice, exi
 		return false
 	}
 
-	// Compare each choice
 	for i, newChoice := range newChoices {
 		existingChoice := existingChoices[i]
 		if newChoice.Name != existingChoice.Name || newChoice.Value != existingChoice.Value {
