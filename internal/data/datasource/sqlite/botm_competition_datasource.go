@@ -8,7 +8,7 @@ type BotmDataSource interface {
 	StartNewBotm(serverID, boss, password string) error
 	Start(serverID, boss, password string) error
 	Stop(serverID string) error
-	GetCurrentBotm(serverID string) (*Botm, error)
+	GetCurrentBotm(serverID string) (*BotmModel, error)
 }
 
 func NewBotmDataSource(db *sql.DB) BotmDataSource {
@@ -17,7 +17,7 @@ func NewBotmDataSource(db *sql.DB) BotmDataSource {
 
 type botmDS struct{ db *sql.DB }
 
-func (ds *botmDS) GetCurrentBotm(serverID string) (*Botm, error) {
+func (ds *botmDS) GetCurrentBotm(serverID string) (*BotmModel, error) {
 	row := ds.db.QueryRow(`
         SELECT id, server_id, current_boss, password, status
         FROM botm
@@ -26,7 +26,7 @@ func (ds *botmDS) GetCurrentBotm(serverID string) (*Botm, error) {
         LIMIT 1`,
 		serverID,
 	)
-	var b Botm
+	var b BotmModel
 	if err := row.Scan(
 		&b.ID, &b.ServerID, &b.CurrentBoss, &b.Password, &b.Status,
 	); err != nil {

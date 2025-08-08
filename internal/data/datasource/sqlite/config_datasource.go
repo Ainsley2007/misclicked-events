@@ -7,8 +7,8 @@ import (
 )
 
 type ConfigDataSource interface {
-	GetConfig(serverID string) (*Config, error)
-	UpsertConfig(cfg *Config) error
+	GetConfig(serverID string) (*ConfigModel, error)
+	UpsertConfig(cfg *ConfigModel) error
 	UpdateRankingChannelID(serverID, channelID string) error
 	UpdateHiscoreChannelID(serverID, channelID string) error
 	UpdateCategoryChannelID(serverID, channelID string) error
@@ -22,14 +22,14 @@ func NewConfigDataSource(db *sql.DB) ConfigDataSource {
 
 type configDS struct{ db *sql.DB }
 
-func (ds *configDS) GetConfig(serverID string) (*Config, error) {
+func (ds *configDS) GetConfig(serverID string) (*ConfigModel, error) {
 	query := `
 		SELECT ranking_channel_id, hiscore_channel_id, category_channel_id,
 		       ranking_message_id, hiscore_message_id
 		FROM config WHERE server_id = ?`
 
 	row := ds.db.QueryRow(query, serverID)
-	cfg := &Config{ServerID: serverID}
+	cfg := &ConfigModel{ServerID: serverID}
 
 	err := row.Scan(
 		&cfg.RankingChannelID,
@@ -53,7 +53,7 @@ func (ds *configDS) GetConfig(serverID string) (*Config, error) {
 	return cfg, nil
 }
 
-func (ds *configDS) UpsertConfig(cfg *Config) error {
+func (ds *configDS) UpsertConfig(cfg *ConfigModel) error {
 	if cfg == nil {
 		return fmt.Errorf("config cannot be nil")
 	}

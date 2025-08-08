@@ -3,50 +3,58 @@ package repository
 import (
 	"fmt"
 	"misclicked-events/internal/data/datasource/sqlite"
+	"misclicked-events/internal/data/mappers"
+	"misclicked-events/internal/domain"
 	"misclicked-events/internal/utils"
 )
 
 type ConfigRepository struct {
-	ds sqlite.ConfigDataSource
+	ds     sqlite.ConfigDataSource
+	mapper *mappers.ConfigMapper
 }
 
 func NewConfigRepository(ds sqlite.ConfigDataSource) *ConfigRepository {
-	return &ConfigRepository{ds: ds}
+	return &ConfigRepository{
+		ds:     ds,
+		mapper: mappers.NewConfigMapper(),
+	}
 }
 
-func (r *ConfigRepository) FetchConfig(serverID string) (*sqlite.Config, error) {
+func (r *ConfigRepository) FetchConfig(serverID string) (*domain.Config, error) {
 	if serverID == "" {
 		return nil, fmt.Errorf("server ID cannot be empty")
 	}
 
 	utils.Debug("Fetching config for server %s", serverID)
-	cfg, err := r.ds.GetConfig(serverID)
+	cfgModel, err := r.ds.GetConfig(serverID)
 	if err != nil {
 		utils.Error("Failed to fetch config for server %s: %v", serverID, err)
 		return nil, fmt.Errorf("failed to fetch config for server %s: %w", serverID, err)
 	}
 
+	cfg := r.mapper.ToDomain(cfgModel, serverID)
 	utils.Debug("Successfully fetched config for server %s", serverID)
 	return cfg, nil
 }
 
-func (r *ConfigRepository) SaveConfig(cfg *sqlite.Config) error {
+func (r *ConfigRepository) SaveConfig(cfg *domain.Config, serverID string) error {
 	if cfg == nil {
 		return fmt.Errorf("config cannot be nil")
 	}
 
-	if cfg.ServerID == "" {
+	if serverID == "" {
 		return fmt.Errorf("server ID cannot be empty")
 	}
 
-	utils.Debug("Saving config for server %s", cfg.ServerID)
-	err := r.ds.UpsertConfig(cfg)
+	utils.Debug("Saving config for server %s", serverID)
+	cfgModel := r.mapper.ToModel(cfg, serverID)
+	err := r.ds.UpsertConfig(cfgModel)
 	if err != nil {
-		utils.Error("Failed to save config for server %s: %v", cfg.ServerID, err)
-		return fmt.Errorf("failed to save config for server %s: %w", cfg.ServerID, err)
+		utils.Error("Failed to save config for server %s: %v", serverID, err)
+		return fmt.Errorf("failed to save config for server %s: %w", serverID, err)
 	}
 
-	utils.Info("Successfully saved config for server %s", cfg.ServerID)
+	utils.Info("Successfully saved config for server %s", serverID)
 	return nil
 }
 

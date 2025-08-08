@@ -36,7 +36,7 @@ func lookupInitialKcForParticipantsAsync(guildID, bossId string) {
 				defer wg.Done() // Decrement the counter when the goroutine completes
 
 				// Fetch hiscores for the account
-				_, activities, err := HiscoreRepo.FetchHiscore(accountName)
+				hiscoreData, err := HiscoreRepo.FetchHiscore(accountName)
 				if err != nil {
 					fmt.Printf("Error fetching hiscore for account %s: %v\n", accountName, err)
 					return
@@ -44,7 +44,7 @@ func lookupInitialKcForParticipantsAsync(guildID, bossId string) {
 
 				kc := 0
 				for _, act := range constants.Activities[bossId].BossNames {
-					activity, exists := repository.FindActivity(activities, act)
+					activity, exists := repository.FindActivity(hiscoreData.Activities, act)
 					if !exists {
 						fmt.Printf("No activity found for boss %s for account %s\n", bossId, accountName)
 						continue

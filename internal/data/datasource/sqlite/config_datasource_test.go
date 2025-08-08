@@ -37,7 +37,7 @@ func TestGetConfig_Default(t *testing.T) {
 	if err != nil {
 		t.Fatalf("GetConfig returned error: %v", err)
 	}
-	expected := &Config{ServerID: serverID}
+	expected := &ConfigModel{ServerID: serverID}
 	if !reflect.DeepEqual(cfg, expected) {
 		t.Errorf("expected %+v, got %+v", expected, cfg)
 	}
@@ -46,7 +46,7 @@ func TestGetConfig_Default(t *testing.T) {
 func TestUpsertAndGetConfig(t *testing.T) {
 	_, ds := setupTestDB(t)
 	serverID := "server1"
-	input := &Config{
+	input := &ConfigModel{
 		ServerID:          serverID,
 		RankingChannelID:  "rank1",
 		HiscoreChannelID:  "hiscore1",
@@ -69,7 +69,7 @@ func TestUpsertAndGetConfig(t *testing.T) {
 func TestUpdateFields(t *testing.T) {
 	_, ds := setupTestDB(t)
 	serverID := "server1"
-	_ = ds.UpsertConfig(&Config{
+	_ = ds.UpsertConfig(&ConfigModel{
 		ServerID:          serverID,
 		RankingChannelID:  "rank1",
 		HiscoreChannelID:  "hiscore1",

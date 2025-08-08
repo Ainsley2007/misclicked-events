@@ -1,14 +1,13 @@
-package sqlite
+package domain
 
 import "time"
 
-type ServerModel struct {
+type Server struct {
 	ID   string
 	Name string
 }
 
-type ConfigModel struct {
-	ServerID          string
+type Config struct {
 	RankingChannelID  string
 	HiscoreChannelID  string
 	CategoryChannelID string
@@ -16,21 +15,39 @@ type ConfigModel struct {
 	HiscoreMessageID  string
 }
 
-type BotmModel struct {
+type Botm struct {
 	ID          int64
-	ServerID    string
 	CurrentBoss string
 	Password    string
 	Status      string
 }
 
-type KotsModel struct {
+type Kots struct {
 	ID                     int64
-	ServerID               string
 	CurrentSkill           string
 	CurrentKingParticipant int64
 	Streak                 int
 	StartDate              time.Time
 	EndDate                *time.Time
 	Status                 string
+}
+
+type HiscoreData struct {
+	Skills     []Skill
+	Activities []Activity
+}
+
+type Skill struct {
+	ID    int
+	Name  string
+	Rank  int
+	Level int
+	XP    int
+}
+
+type Activity struct {
+	ID    int
+	Name  string
+	Rank  int
+	Score int
 }

@@ -310,14 +310,14 @@ func addAccountToParticipant(participant *Participant, username, currentBoss str
 
 // fetchKc calculates the total KC for the given username and boss.
 func fetchKc(username, bossId string) (int, error) {
-	_, activities, err := HiscoreRepo.FetchHiscore(username)
+	hiscoreData, err := HiscoreRepo.FetchHiscore(username)
 	if err != nil {
 		return 0, fmt.Errorf("failed to fetch hiscores for %s: %w", username, err)
 	}
 
 	kc := 0
 	for _, activityName := range constants.Activities[bossId].BossNames {
-		if activity, exists := repository.FindActivity(activities, activityName); exists {
+		if activity, exists := repository.FindActivity(hiscoreData.Activities, activityName); exists {
 			kc += max(0, activity.Score)
 		}
 	}

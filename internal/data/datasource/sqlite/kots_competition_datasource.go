@@ -14,7 +14,7 @@ type KotsDataSource interface {
 		status string,
 	) (int64, error)
 
-	GetCurrentKots(serverID string) (*Kots, error)
+	GetCurrentKots(serverID string) (*KotsModel, error)
 }
 
 func NewKotsDataSource(db *sql.DB) KotsDataSource {
@@ -44,7 +44,7 @@ func (ds *kotsDS) InsertNewKots(
 	return res.LastInsertId()
 }
 
-func (ds *kotsDS) GetCurrentKots(serverID string) (*Kots, error) {
+func (ds *kotsDS) GetCurrentKots(serverID string) (*KotsModel, error) {
 	row := ds.db.QueryRow(
 		`SELECT id, server_id, current_skill, current_king_participant, streak, start_date, end_date, status
 		   FROM kots
@@ -53,7 +53,7 @@ func (ds *kotsDS) GetCurrentKots(serverID string) (*Kots, error) {
 		  LIMIT 1`,
 		serverID,
 	)
-	var k Kots
+	var k KotsModel
 	var startStr, endStr string
 	if err := row.Scan(
 		&k.ID, &k.ServerID, &k.CurrentSkill, &k.CurrentKingParticipant,

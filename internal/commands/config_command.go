@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 	"misclicked-events/internal/data"
-	"misclicked-events/internal/data/datasource/sqlite"
+	"misclicked-events/internal/domain"
 	"misclicked-events/internal/utils"
 
 	"github.com/bwmarrin/discordgo"
@@ -91,15 +91,14 @@ func HandleConfigCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	}
 
 	// Create config object
-	config := &sqlite.Config{
-		ServerID:          i.GuildID,
+	config := &domain.Config{
 		RankingChannelID:  rankingChannelID,
 		HiscoreChannelID:  hiscoreChannelID,
 		CategoryChannelID: categoryChannelID,
 	}
 
 	// Save configuration
-	err = data.ConfigRepo.SaveConfig(config)
+	err = data.ConfigRepo.SaveConfig(config, i.GuildID)
 	if err != nil {
 		utils.EditResponseError(s, i, fmt.Errorf("failed to save configuration: %w", err))
 		return
