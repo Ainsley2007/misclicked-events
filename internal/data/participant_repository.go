@@ -308,7 +308,6 @@ func addAccountToParticipant(participant *Participant, username, currentBoss str
 	return nil
 }
 
-// fetchKc calculates the total KC for the given username and boss.
 func fetchKc(username, bossId string) (int, error) {
 	hiscoreData, err := HiscoreRepo.FetchHiscore(username)
 	if err != nil {

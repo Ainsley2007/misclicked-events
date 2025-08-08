@@ -15,6 +15,7 @@ var (
 	ConfigRepo      *repository.ConfigRepository
 	CompetitionRepo *repository.CompetitionRepository
 	HiscoreRepo     *repository.HiscoreRepository
+	ParticipantRepo *repository.ParticipantRepository
 )
 
 func Init(dbPath string) error {
@@ -24,7 +25,6 @@ func Init(dbPath string) error {
 		return fmt.Errorf("data.Init: %w", err)
 	}
 
-	// wire up all your repos once
 	sDS := sqlite.NewServerDataSource(DB)
 	ServerRepo = repository.NewServerRepository(sDS)
 
@@ -35,9 +35,11 @@ func Init(dbPath string) error {
 	kotsDS := sqlite.NewKotsDataSource(DB)
 	CompetitionRepo = repository.NewCompetitionRepository(botmDS, kotsDS)
 
-	// wire up hiscore repository
 	hiscoreDS := api.NewHiscoreDataSource()
 	HiscoreRepo = repository.NewHiscoreRepository(hiscoreDS)
+
+	participantDS := sqlite.NewParticipantDataSource(DB)
+	ParticipantRepo = repository.NewParticipantRepository(participantDS)
 
 	return nil
 }
