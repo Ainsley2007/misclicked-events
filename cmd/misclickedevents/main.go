@@ -38,7 +38,7 @@ func main() {
 		return
 	}
 
-	commands.RegisterCommands(dg, false)
+	commands.RegisterCommands(dg, true)
 
 	commands.UpdateBOTMHiscores(dg)
 

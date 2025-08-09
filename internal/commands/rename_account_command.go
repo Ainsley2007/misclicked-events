@@ -15,10 +15,11 @@ var RenameAccountCommand = &discordgo.ApplicationCommand{
 	Description: "Rename one of your tracked OSRS accounts",
 	Options: []*discordgo.ApplicationCommandOption{
 		{
-			Type:        discordgo.ApplicationCommandOptionString,
-			Name:        "old_username",
-			Description: "The current username of the account",
-			Required:    true,
+			Type:         discordgo.ApplicationCommandOptionString,
+			Name:         "old_username",
+			Description:  "The current username of the account",
+			Required:     true,
+			Autocomplete: true,
 		},
 		{
 			Type:        discordgo.ApplicationCommandOptionString,

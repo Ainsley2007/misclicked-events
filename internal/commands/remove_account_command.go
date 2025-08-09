@@ -15,10 +15,11 @@ var RemoveAccountCommand = &discordgo.ApplicationCommand{
 	Description: "Stop tracking an OSRS account from your profile",
 	Options: []*discordgo.ApplicationCommandOption{
 		{
-			Type:        discordgo.ApplicationCommandOptionString,
-			Name:        "username",
-			Description: "The OSRS account username to stop tracking",
-			Required:    true,
+			Type:         discordgo.ApplicationCommandOptionString,
+			Name:         "username",
+			Description:  "The OSRS account username to stop tracking",
+			Required:     true,
+			Autocomplete: true,
 		},
 	},
 }
