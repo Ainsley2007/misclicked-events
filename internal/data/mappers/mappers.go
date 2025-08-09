@@ -185,60 +185,41 @@ func (m *AccountMapper) ToDomain(participantModel *sqlite.ParticipantModel, acco
 	osrsAccounts := make([]domain.OSRSAccount, len(accountModels))
 	for i, accountModel := range accountModels {
 		osrsAccounts[i] = domain.OSRSAccount{
-			ID:        accountModel.ID,
-			Name:      accountModel.Name,
-			CreatedAt: accountModel.CreatedAt,
-			UpdatedAt: accountModel.UpdatedAt,
+			ID:   accountModel.ID,
+			Name: accountModel.Username,
 		}
 	}
 
 	var botmParticipation *domain.BotmParticipation
 	if len(botmParticipationModels) > 0 {
 		latestBotm := botmParticipationModels[0]
-		for _, participation := range botmParticipationModels {
-			if participation.CreatedAt.After(latestBotm.CreatedAt) {
-				latestBotm = participation
-			}
-		}
 		botmParticipation = &domain.BotmParticipation{
-			ID:            latestBotm.ID,
+			ParticipantID: latestBotm.ParticipantID,
 			BotmID:        latestBotm.BotmID,
 			StartAmount:   latestBotm.StartAmount,
 			CurrentAmount: latestBotm.CurrentAmount,
-			CreatedAt:     latestBotm.CreatedAt,
-			UpdatedAt:     latestBotm.UpdatedAt,
 		}
 	}
 
 	var kotsParticipation *domain.KotsParticipation
 	if len(kotsParticipationModels) > 0 {
 		latestKots := kotsParticipationModels[0]
-		for _, participation := range kotsParticipationModels {
-			if participation.CreatedAt.After(latestKots.CreatedAt) {
-				latestKots = participation
-			}
-		}
 		kotsParticipation = &domain.KotsParticipation{
-			ID:            latestKots.ID,
+			ParticipantID: latestKots.ParticipantID,
 			KotsID:        latestKots.KotsID,
 			StartAmount:   latestKots.StartAmount,
 			CurrentAmount: latestKots.CurrentAmount,
-			CreatedAt:     latestKots.CreatedAt,
-			UpdatedAt:     latestKots.UpdatedAt,
 		}
 	}
 
 	return &domain.Account{
 		ID:                participantModel.ID,
 		DiscordID:         participantModel.DiscordID,
-		Points:            participantModel.Points,
+		BotmPoints:        participantModel.BotmPoints,
+		KotsPoints:        participantModel.KotsPoints,
 		OSRSAccounts:      osrsAccounts,
 		BotmParticipation: botmParticipation,
 		KotsParticipation: kotsParticipation,
-		BotmEnabled:       participantModel.BotmEnabled,
-		KotsEnabled:       participantModel.KotsEnabled,
-		CreatedAt:         participantModel.CreatedAt,
-		UpdatedAt:         participantModel.UpdatedAt,
 	}
 }
 
@@ -248,24 +229,20 @@ func (m *AccountMapper) ToModels(entity *domain.Account, serverID string) (*sqli
 	}
 
 	participantModel := &sqlite.ParticipantModel{
-		ID:          entity.ID,
-		ServerID:    serverID,
-		DiscordID:   entity.DiscordID,
-		Points:      entity.Points,
-		BotmEnabled: entity.BotmEnabled,
-		KotsEnabled: entity.KotsEnabled,
-		CreatedAt:   entity.CreatedAt,
-		UpdatedAt:   entity.UpdatedAt,
+		ID:         entity.ID,
+		ServerID:   serverID,
+		DiscordID:  entity.DiscordID,
+		BotmPoints: entity.BotmPoints,
+		KotsPoints: entity.KotsPoints,
 	}
 
 	accountModels := make([]*sqlite.AccountModel, len(entity.OSRSAccounts))
 	for i, osrsAccount := range entity.OSRSAccounts {
 		accountModels[i] = &sqlite.AccountModel{
-			ID:            osrsAccount.ID,
-			ParticipantID: entity.ID,
-			Name:          osrsAccount.Name,
-			CreatedAt:     osrsAccount.CreatedAt,
-			UpdatedAt:     osrsAccount.UpdatedAt,
+			ID:               osrsAccount.ID,
+			ParticipantID:    entity.ID,
+			Username:         osrsAccount.Name,
+			FailedFetchCount: 0,
 		}
 	}
 
@@ -273,13 +250,10 @@ func (m *AccountMapper) ToModels(entity *domain.Account, serverID string) (*sqli
 	if entity.BotmParticipation != nil {
 		botmParticipationModels = []*sqlite.BotmParticipationModel{
 			{
-				ID:            entity.BotmParticipation.ID,
-				ParticipantID: entity.ID,
+				ParticipantID: entity.BotmParticipation.ParticipantID,
 				BotmID:        entity.BotmParticipation.BotmID,
 				StartAmount:   entity.BotmParticipation.StartAmount,
 				CurrentAmount: entity.BotmParticipation.CurrentAmount,
-				CreatedAt:     entity.BotmParticipation.CreatedAt,
-				UpdatedAt:     entity.BotmParticipation.UpdatedAt,
 			},
 		}
 	}
@@ -288,13 +262,10 @@ func (m *AccountMapper) ToModels(entity *domain.Account, serverID string) (*sqli
 	if entity.KotsParticipation != nil {
 		kotsParticipationModels = []*sqlite.KotsParticipationModel{
 			{
-				ID:            entity.KotsParticipation.ID,
-				ParticipantID: entity.ID,
+				ParticipantID: entity.KotsParticipation.ParticipantID,
 				KotsID:        entity.KotsParticipation.KotsID,
 				StartAmount:   entity.KotsParticipation.StartAmount,
 				CurrentAmount: entity.KotsParticipation.CurrentAmount,
-				CreatedAt:     entity.KotsParticipation.CreatedAt,
-				UpdatedAt:     entity.KotsParticipation.UpdatedAt,
 			},
 		}
 	}

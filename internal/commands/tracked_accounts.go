@@ -14,7 +14,6 @@ var TrackedAccountsCommand = &discordgo.ApplicationCommand{
 }
 
 func HandleTrackedAccountsCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	// Defer the response immediately
 	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{

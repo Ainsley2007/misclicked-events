@@ -36,40 +36,30 @@ type KotsModel struct {
 }
 
 type ParticipantModel struct {
-	ID          int64
-	ServerID    string
-	DiscordID   string
-	Points      int
-	BotmEnabled bool
-	KotsEnabled bool
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID         int64
+	ServerID   string
+	DiscordID  string
+	BotmPoints int
+	KotsPoints int
 }
 
 type AccountModel struct {
-	ID            int64
-	ParticipantID int64
-	Name          string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	ID               int64
+	ParticipantID    int64
+	Username         string
+	FailedFetchCount int
 }
 
 type BotmParticipationModel struct {
-	ID            int64
 	ParticipantID int64
 	BotmID        int64
 	StartAmount   int
 	CurrentAmount int
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
 }
 
 type KotsParticipationModel struct {
-	ID            int64
 	ParticipantID int64
 	KotsID        int64
 	StartAmount   int
 	CurrentAmount int
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
 }

@@ -53,7 +53,6 @@ func TestListAndDeleteServer(t *testing.T) {
 	if len(list) != 2 {
 		t.Errorf("expected 2 servers, got %d", len(list))
 	}
-	// Delete one
 	if err := ds.DeleteServer("srv1"); err != nil {
 		t.Fatalf("DeleteServer error: %v", err)
 	}
