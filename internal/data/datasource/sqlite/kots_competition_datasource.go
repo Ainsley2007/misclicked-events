@@ -8,7 +8,7 @@ import (
 type KotsDataSource interface {
 	InsertNewKots(
 		serverID, skill string,
-		kingParticipant int64,
+		kingParticipant string,
 		streak int,
 		start, end time.Time,
 		status string,
@@ -25,7 +25,7 @@ type kotsDS struct{ db *sql.DB }
 
 func (ds *kotsDS) InsertNewKots(
 	serverID, skill string,
-	kingParticipant int64,
+	kingParticipant string,
 	streak int,
 	start, end time.Time,
 	status string,

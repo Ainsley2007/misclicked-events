@@ -12,13 +12,12 @@ func setupKotsDB(t *testing.T) (*sql.DB, KotsDataSource) {
 	if err != nil {
 		t.Fatalf("opening sqlite: %v", err)
 	}
-	// create kots table
 	create := `
 CREATE TABLE kots (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     server_id TEXT NOT NULL,
     current_skill TEXT NOT NULL,
-    current_king_participant INTEGER NOT NULL,
+    current_king_participant TEXT NOT NULL,
     streak INTEGER NOT NULL,
     start_date TEXT NOT NULL,
     end_date TEXT NOT NULL,
@@ -46,12 +45,13 @@ func TestInsertAndGetCurrentKots(t *testing.T) {
 	_, ds := setupKotsDB(t)
 	start := time.Now().UTC().Truncate(time.Second)
 	end := start.Add(2 * time.Hour)
+	kingParticipant := "123"
 	// pending insert
-	if _, err := ds.InsertNewKots("srv", "Skill1", 123, 5, start, end, "pending"); err != nil {
+	if _, err := ds.InsertNewKots("srv", "Skill1", kingParticipant, 5, start, end, "pending"); err != nil {
 		t.Fatalf("InsertNewKots pending error: %v", err)
 	}
 	// active insert
-	id, err := ds.InsertNewKots("srv", "Skill2", 456, 10, start.Add(time.Minute), end.Add(time.Minute), "active")
+	id, err := ds.InsertNewKots("srv", "Skill2", "456", 10, start.Add(time.Minute), end.Add(time.Minute), "active")
 	if err != nil {
 		t.Fatalf("InsertNewKots active error: %v", err)
 	}
@@ -60,7 +60,7 @@ func TestInsertAndGetCurrentKots(t *testing.T) {
 		t.Fatalf("GetCurrentKots error: %v", err)
 	}
 	if got.ID != id || got.ServerID != "srv" || got.CurrentSkill != "Skill2" ||
-		got.CurrentKingParticipant != 456 || got.Streak != 10 || got.Status != "active" {
+		got.CurrentKingParticipant != "456" || got.Streak != 10 || got.Status != "active" {
 		t.Errorf("GetCurrentKots = %+v", got)
 	}
 }
@@ -68,11 +68,11 @@ func TestInsertAndGetCurrentKots(t *testing.T) {
 func TestMultipleActiveKots_SelectLatest(t *testing.T) {
 	_, ds := setupKotsDB(t)
 	base := time.Now().UTC().Truncate(time.Second)
-	_, err := ds.InsertNewKots("srv", "S1", 1, 1, base, base.Add(time.Hour), "active")
+	_, err := ds.InsertNewKots("srv", "S1", "1", 1, base, base.Add(time.Hour), "active")
 	if err != nil {
 		t.Fatalf("InsertNewKots #1: %v", err)
 	}
-	id2, err := ds.InsertNewKots("srv", "S2", 2, 2, base.Add(10*time.Minute), base.Add(2*time.Hour), "active")
+	id2, err := ds.InsertNewKots("srv", "S2", "2", 2, base.Add(10*time.Minute), base.Add(2*time.Hour), "active")
 	if err != nil {
 		t.Fatalf("InsertNewKots #2: %v", err)
 	}

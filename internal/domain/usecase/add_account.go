@@ -64,14 +64,6 @@ func (uc *AddAccountUseCase) Execute(serverID, discordID, accountName string) er
 		}
 		utils.Debug("AddAccountUseCase: Retrieved BOTM %d with boss %s", botm.ID, botm.CurrentBoss)
 
-		utils.Debug("AddAccountUseCase: Getting participant ID for %s in server %s", discordID, serverID)
-		participantID, err := uc.participantRepo.GetParticipantID(serverID, discordID)
-		if err != nil {
-			utils.Error("AddAccountUseCase: Failed to get participant ID for %s in server %s: %v", discordID, serverID, err)
-			return fmt.Errorf("failed to add account")
-		}
-		utils.Debug("AddAccountUseCase: Retrieved participant ID %d", participantID)
-
 		utils.Debug("AddAccountUseCase: Getting current KC for %s on boss %s", accountName, botm.CurrentBoss)
 		startingKC, err := uc.hiscoreRepo.GetBossKC(accountName, botm.CurrentBoss)
 		if err != nil {
@@ -80,13 +72,13 @@ func (uc *AddAccountUseCase) Execute(serverID, discordID, accountName string) er
 		}
 		utils.Debug("AddAccountUseCase: Retrieved starting KC %d for %s on boss %s", startingKC, accountName, botm.CurrentBoss)
 
-		utils.Debug("AddAccountUseCase: Adding BOTM participation for participant %d in BOTM %d", participantID, botm.ID)
-		err = uc.participantRepo.AddBotmParticipation(participantID, botm.ID, startingKC)
+		utils.Debug("AddAccountUseCase: Adding BOTM participation for participant %s in BOTM %d", discordID, botm.ID)
+		err = uc.participantRepo.AddBotmParticipation(discordID, botm.ID, startingKC)
 		if err != nil {
-			utils.Error("AddAccountUseCase: Failed to add BOTM participation for participant %d in BOTM %d: %v", participantID, botm.ID, err)
+			utils.Error("AddAccountUseCase: Failed to add BOTM participation for participant %s in BOTM %d: %v", discordID, botm.ID, err)
 			return fmt.Errorf("failed to add account")
 		}
-		utils.Info("AddAccountUseCase: Successfully added BOTM participation for participant %d in BOTM %d with starting KC %d", participantID, botm.ID, startingKC)
+		utils.Info("AddAccountUseCase: Successfully added BOTM participation for participant %s in BOTM %d with starting KC %d", discordID, botm.ID, startingKC)
 	} else {
 		utils.Debug("AddAccountUseCase: No active BOTM competition found in server %s", serverID)
 	}

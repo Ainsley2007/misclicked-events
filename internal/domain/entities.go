@@ -25,7 +25,7 @@ type Botm struct {
 type Kots struct {
 	ID                     int64
 	CurrentSkill           string
-	CurrentKingParticipant int64
+	CurrentKingParticipant string
 	Streak                 int
 	StartDate              time.Time
 	EndDate                *time.Time
@@ -53,7 +53,6 @@ type Activity struct {
 }
 
 type Account struct {
-	ID                int64
 	DiscordID         string
 	BotmPoints        int
 	KotsPoints        int
@@ -68,14 +67,14 @@ type OSRSAccount struct {
 }
 
 type BotmParticipation struct {
-	ParticipantID int64
+	ParticipantID string
 	BotmID        int64
 	StartAmount   int
 	CurrentAmount int
 }
 
 type KotsParticipation struct {
-	ParticipantID int64
+	ParticipantID string
 	KotsID        int64
 	StartAmount   int
 	CurrentAmount int

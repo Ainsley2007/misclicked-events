@@ -213,7 +213,6 @@ func (m *AccountMapper) ToDomain(participantModel *sqlite.ParticipantModel, acco
 	}
 
 	return &domain.Account{
-		ID:                participantModel.ID,
 		DiscordID:         participantModel.DiscordID,
 		BotmPoints:        participantModel.BotmPoints,
 		KotsPoints:        participantModel.KotsPoints,
@@ -229,9 +228,8 @@ func (m *AccountMapper) ToModels(entity *domain.Account, serverID string) (*sqli
 	}
 
 	participantModel := &sqlite.ParticipantModel{
-		ID:         entity.ID,
-		ServerID:   serverID,
 		DiscordID:  entity.DiscordID,
+		ServerID:   serverID,
 		BotmPoints: entity.BotmPoints,
 		KotsPoints: entity.KotsPoints,
 	}
@@ -240,7 +238,7 @@ func (m *AccountMapper) ToModels(entity *domain.Account, serverID string) (*sqli
 	for i, osrsAccount := range entity.OSRSAccounts {
 		accountModels[i] = &sqlite.AccountModel{
 			ID:               osrsAccount.ID,
-			ParticipantID:    entity.ID,
+			ParticipantID:    entity.DiscordID,
 			Username:         osrsAccount.Name,
 			FailedFetchCount: 0,
 		}

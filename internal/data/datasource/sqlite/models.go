@@ -28,7 +28,7 @@ type KotsModel struct {
 	ID                     int64
 	ServerID               string
 	CurrentSkill           string
-	CurrentKingParticipant int64
+	CurrentKingParticipant string
 	Streak                 int
 	StartDate              time.Time
 	EndDate                *time.Time
@@ -36,29 +36,28 @@ type KotsModel struct {
 }
 
 type ParticipantModel struct {
-	ID         int64
-	ServerID   string
 	DiscordID  string
+	ServerID   string
 	BotmPoints int
 	KotsPoints int
 }
 
 type AccountModel struct {
 	ID               int64
-	ParticipantID    int64
+	ParticipantID    string
 	Username         string
 	FailedFetchCount int
 }
 
 type BotmParticipationModel struct {
-	ParticipantID int64
+	ParticipantID string
 	BotmID        int64
 	StartAmount   int
 	CurrentAmount int
 }
 
 type KotsParticipationModel struct {
-	ParticipantID int64
+	ParticipantID string
 	KotsID        int64
 	StartAmount   int
 	CurrentAmount int

@@ -16,21 +16,19 @@ func setupParticipantDB(t *testing.T) (*sql.DB, ParticipantDataSource) {
 
 	createParticipantTable := `
 	CREATE TABLE participant (
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
+		discord_id TEXT PRIMARY KEY,
 		server_id TEXT NOT NULL,
-		discord_id TEXT NOT NULL,
 		botm_points INTEGER DEFAULT 0,
-		kots_points INTEGER DEFAULT 0,
-		UNIQUE(server_id, discord_id)
+		kots_points INTEGER DEFAULT 0
 	);`
 
 	createAccountTable := `
 	CREATE TABLE account (
 		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		participant_id INTEGER NOT NULL,
+		participant_id TEXT NOT NULL,
 		username TEXT NOT NULL,
 		failed_fetch_count INTEGER DEFAULT 0,
-		FOREIGN KEY (participant_id) REFERENCES participant(id),
+		FOREIGN KEY (participant_id) REFERENCES participant(discord_id),
 		UNIQUE(participant_id, username)
 	);`
 
@@ -57,18 +55,14 @@ func TestAddAccount_NewParticipant(t *testing.T) {
 		t.Fatalf("AddAccount failed: %v", err)
 	}
 
-	var participantID int64
 	var botmPoints, kotsPoints int
 	err = ds.(*participantDS).db.QueryRow(
-		"SELECT id, botm_points, kots_points FROM participant WHERE server_id = ? AND discord_id = ?",
-		serverID, discordID).Scan(&participantID, &botmPoints, &kotsPoints)
+		"SELECT botm_points, kots_points FROM participant WHERE server_id = ? AND discord_id = ?",
+		serverID, discordID).Scan(&botmPoints, &kotsPoints)
 	if err != nil {
 		t.Fatalf("failed to query participant: %v", err)
 	}
 
-	if participantID == 0 {
-		t.Error("participant ID should not be 0")
-	}
 	if botmPoints != 0 {
 		t.Errorf("expected botm_points to be 0, got %d", botmPoints)
 	}
@@ -79,7 +73,7 @@ func TestAddAccount_NewParticipant(t *testing.T) {
 	var accountID int64
 	err = ds.(*participantDS).db.QueryRow(
 		"SELECT id FROM account WHERE participant_id = ? AND username = ?",
-		participantID, accountName).Scan(&accountID)
+		discordID, accountName).Scan(&accountID)
 	if err != nil {
 		t.Fatalf("failed to query account: %v", err)
 	}
@@ -107,18 +101,10 @@ func TestAddAccount_ExistingParticipant(t *testing.T) {
 		t.Fatalf("AddAccount failed: %v", err)
 	}
 
-	var participantID int64
-	err = ds.(*participantDS).db.QueryRow(
-		"SELECT id FROM participant WHERE server_id = ? AND discord_id = ?",
-		serverID, discordID).Scan(&participantID)
-	if err != nil {
-		t.Fatalf("failed to query participant: %v", err)
-	}
-
 	var count int
 	err = ds.(*participantDS).db.QueryRow(
 		"SELECT COUNT(*) FROM account WHERE participant_id = ?",
-		participantID).Scan(&count)
+		discordID).Scan(&count)
 	if err != nil {
 		t.Fatalf("failed to count accounts: %v", err)
 	}
@@ -145,18 +131,10 @@ func TestAddAccount_DuplicateAccount(t *testing.T) {
 		t.Error("AddAccount should fail when account already tracked")
 	}
 
-	var participantID int64
-	err = ds.(*participantDS).db.QueryRow(
-		"SELECT id FROM participant WHERE server_id = ? AND discord_id = ?",
-		serverID, discordID).Scan(&participantID)
-	if err != nil {
-		t.Fatalf("failed to query participant: %v", err)
-	}
-
 	var count int
 	err = ds.(*participantDS).db.QueryRow(
 		"SELECT COUNT(*) FROM account WHERE participant_id = ? AND username = ?",
-		participantID, accountName).Scan(&count)
+		discordID, accountName).Scan(&count)
 	if err != nil {
 		t.Fatalf("failed to count accounts: %v", err)
 	}
@@ -183,18 +161,10 @@ func TestRemoveAccount_Success(t *testing.T) {
 		t.Fatalf("RemoveAccount failed: %v", err)
 	}
 
-	var participantID int64
-	err = ds.(*participantDS).db.QueryRow(
-		"SELECT id FROM participant WHERE server_id = ? AND discord_id = ?",
-		serverID, discordID).Scan(&participantID)
-	if err != nil {
-		t.Fatalf("failed to query participant: %v", err)
-	}
-
 	var count int
 	err = ds.(*participantDS).db.QueryRow(
 		"SELECT COUNT(*) FROM account WHERE participant_id = ? AND username = ?",
-		participantID, accountName).Scan(&count)
+		discordID, accountName).Scan(&count)
 	if err != nil {
 		t.Fatalf("failed to count accounts: %v", err)
 	}
@@ -235,18 +205,10 @@ func TestRemoveAccount_AccountNotFound(t *testing.T) {
 		t.Error("RemoveAccount should fail when account not found")
 	}
 
-	var participantID int64
-	err = ds.(*participantDS).db.QueryRow(
-		"SELECT id FROM participant WHERE server_id = ? AND discord_id = ?",
-		serverID, discordID).Scan(&participantID)
-	if err != nil {
-		t.Fatalf("failed to query participant: %v", err)
-	}
-
 	var count int
 	err = ds.(*participantDS).db.QueryRow(
 		"SELECT COUNT(*) FROM account WHERE participant_id = ? AND username = ?",
-		participantID, accountName1).Scan(&count)
+		discordID, accountName1).Scan(&count)
 	if err != nil {
 		t.Fatalf("failed to count accounts: %v", err)
 	}
@@ -279,18 +241,10 @@ func TestRemoveAccount_MultipleAccounts(t *testing.T) {
 		t.Fatalf("RemoveAccount failed: %v", err)
 	}
 
-	var participantID int64
-	err = ds.(*participantDS).db.QueryRow(
-		"SELECT id FROM participant WHERE server_id = ? AND discord_id = ?",
-		serverID, discordID).Scan(&participantID)
-	if err != nil {
-		t.Fatalf("failed to query participant: %v", err)
-	}
-
 	var count int
 	err = ds.(*participantDS).db.QueryRow(
 		"SELECT COUNT(*) FROM account WHERE participant_id = ?",
-		participantID).Scan(&count)
+		discordID).Scan(&count)
 	if err != nil {
 		t.Fatalf("failed to count accounts: %v", err)
 	}
@@ -302,7 +256,7 @@ func TestRemoveAccount_MultipleAccounts(t *testing.T) {
 	var remainingAccount string
 	err = ds.(*participantDS).db.QueryRow(
 		"SELECT username FROM account WHERE participant_id = ?",
-		participantID).Scan(&remainingAccount)
+		discordID).Scan(&remainingAccount)
 	if err != nil {
 		t.Fatalf("failed to query remaining account: %v", err)
 	}
