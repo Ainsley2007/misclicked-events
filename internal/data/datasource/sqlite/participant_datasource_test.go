@@ -141,8 +141,8 @@ func TestAddAccount_DuplicateAccount(t *testing.T) {
 	}
 
 	err = ds.AddAccount(serverID, discordID, accountName)
-	if err != nil {
-		t.Fatalf("AddAccount should not fail for duplicate account: %v", err)
+	if err == nil {
+		t.Error("AddAccount should fail when account already tracked")
 	}
 
 	var participantID int64

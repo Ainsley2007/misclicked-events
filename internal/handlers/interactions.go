@@ -11,17 +11,17 @@ func InteractionCreateHandler(s *discordgo.Session, i *discordgo.InteractionCrea
 	switch i.ApplicationCommandData().Name {
 	case "setup-channels":
 		commands.HandleConfigCommand(s, i)
-	case "track":
-		commands.HandleTrackNewAccountCommand(s, i)
-	case "untrack":
-		commands.HandleUnTrackAccountCommand(s, i)
-	case "tracking":
+	case "add-account":
+		commands.HandleAddAccountCommand(s, i)
+	case "remove-account":
+		commands.HandleRemoveAccountCommand(s, i)
+	case "tracked-accounts":
 		commands.HandleTrackedAccountsCommand(s, i)
 	case "start":
 		commands.HandleStartActivityCommand(s, i)
 	case "end":
 		commands.HandleEndActivityCommand(s, i)
-	case "rename":
+	case "rename-account":
 		commands.HandleRenameAccountCommand(s, i)
 	default:
 		utils.LogError("Unknown command", nil)

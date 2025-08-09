@@ -11,8 +11,8 @@ func RegisterCommands(s *discordgo.Session, force bool) {
 
 	commands := []*discordgo.ApplicationCommand{
 		ConfigCommand,
-		TrackAccountCommand,
-		UntrackAccountCommand,
+		AddAccountCommand,
+		RemoveAccountCommand,
 		TrackedAccountsCommand,
 		StartActivityCommand,
 		EndActivityCommand,

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 	"time"
 )
 
-// LogLevel represents the severity of a log message
 type LogLevel int
 
 const (
@@ -18,19 +18,36 @@ const (
 	FATAL
 )
 
-// Logger provides structured logging functionality
 type Logger struct {
 	level LogLevel
 }
 
-var defaultLogger = &Logger{level: INFO}
+var defaultLogger = &Logger{level: DEBUG}
 
-// SetLogLevel sets the minimum log level for the default logger
+func init() {
+	logLevelStr := os.Getenv("LOG_LEVEL")
+	if logLevelStr != "" {
+		switch strings.ToUpper(logLevelStr) {
+		case "DEBUG":
+			defaultLogger.level = DEBUG
+		case "INFO":
+			defaultLogger.level = INFO
+		case "WARN":
+			defaultLogger.level = WARN
+		case "ERROR":
+			defaultLogger.level = ERROR
+		case "FATAL":
+			defaultLogger.level = FATAL
+		default:
+			log.Printf("Invalid LOG_LEVEL environment variable: %s, using default INFO level", logLevelStr)
+		}
+	}
+}
+
 func SetLogLevel(level LogLevel) {
 	defaultLogger.level = level
 }
 
-// log formats and outputs a log message if it meets the minimum level
 func (l *Logger) log(level LogLevel, format string, args ...interface{}) {
 	if level >= l.level {
 		timestamp := time.Now().Format("2006-01-02 15:04:05")
@@ -40,7 +57,6 @@ func (l *Logger) log(level LogLevel, format string, args ...interface{}) {
 	}
 }
 
-// levelString converts LogLevel to string representation
 func (l *Logger) levelString(level LogLevel) string {
 	switch level {
 	case DEBUG:
@@ -58,33 +74,27 @@ func (l *Logger) levelString(level LogLevel) string {
 	}
 }
 
-// Debug logs a debug message
 func (l *Logger) Debug(format string, args ...interface{}) {
 	l.log(DEBUG, format, args...)
 }
 
-// Info logs an info message
 func (l *Logger) Info(format string, args ...interface{}) {
 	l.log(INFO, format, args...)
 }
 
-// Warn logs a warning message
 func (l *Logger) Warn(format string, args ...interface{}) {
 	l.log(WARN, format, args...)
 }
 
-// Error logs an error message
 func (l *Logger) Error(format string, args ...interface{}) {
 	l.log(ERROR, format, args...)
 }
 
-// Fatal logs a fatal message and exits
 func (l *Logger) Fatal(format string, args ...interface{}) {
 	l.log(FATAL, format, args...)
 	os.Exit(1)
 }
 
-// Package-level convenience functions
 func Debug(format string, args ...interface{}) {
 	defaultLogger.Debug(format, args...)
 }
@@ -105,7 +115,6 @@ func Fatal(format string, args ...interface{}) {
 	defaultLogger.Fatal(format, args...)
 }
 
-// LogError logs an error with context (deprecated - use Error instead)
 func LogError(message string, err error) {
 	if err != nil {
 		Error("%s: %v", message, err)

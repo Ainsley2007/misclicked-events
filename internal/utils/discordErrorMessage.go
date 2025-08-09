@@ -55,7 +55,7 @@ func sendMessage(s *discordgo.Session, i *discordgo.InteractionCreate, content s
 // editMessage is a helper function to handle common message editing logic
 func editMessage(s *discordgo.Session, i *discordgo.InteractionCreate, content string, opts MessageOptions) {
 	if opts.IsError {
-		content = fmt.Sprintf("⚠️ **Error**\n%s", content)
+		content = fmt.Sprintf("⚠️ **Error**: %s", content)
 	}
 
 	_, err := s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
@@ -97,15 +97,29 @@ func RespondWithError(s *discordgo.Session, i *discordgo.InteractionCreate, err 
 
 // EditResponseMessage edits an existing response with new content
 func EditResponseMessage(s *discordgo.Session, i *discordgo.InteractionCreate, content string) {
-	editMessage(s, i, content, MessageOptions{})
+	_, err := s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+		Content: &content,
+	})
+	if err != nil {
+		Error("Error editing response: %v", err)
+	}
 }
 
-// EditResponseError edits an existing response with an error message
-func EditResponseError(s *discordgo.Session, i *discordgo.InteractionCreate, err error) {
-	if err == nil {
-		err = fmt.Errorf("unknown error occurred")
-	}
-	editMessage(s, i, err.Error(), MessageOptions{
-		IsError: true,
+func EditResponseEmbed(s *discordgo.Session, i *discordgo.InteractionCreate, embed *discordgo.MessageEmbed) {
+	embeds := []*discordgo.MessageEmbed{embed}
+	_, err := s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
+		Embeds: &embeds,
 	})
+	if err != nil {
+		Error("Error editing response: %v", err)
+	}
+}
+
+func EditResponseError(s *discordgo.Session, i *discordgo.InteractionCreate, err error) {
+	embed := &discordgo.MessageEmbed{
+		Title:       "❌ Error",
+		Description: err.Error(),
+		Color:       0xff0000,
+	}
+	EditResponseEmbed(s, i, embed)
 }

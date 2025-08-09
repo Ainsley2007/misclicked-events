@@ -9,7 +9,7 @@ DB_URL := sqlite3://./data.db
 # The migrate CLI (must be in your $PATH)
 MIGRATE := migrate
 
-.PHONY: help migrate-up migrate-down migrate-force migrate-status migrate-create
+.PHONY: help migrate-up migrate-down migrate-force migrate-status migrate-create run
 
 help:
 	@echo "Usage:"
@@ -40,3 +40,6 @@ migrate-create:
 	@read -p "Enter migration name (e.g. add_users_table): " name; \
 	echo "→ Creating new migration: $$name"; \
 	$(MIGRATE) create -ext sql -dir $(MIGRATE_PATH) $$name
+
+run:
+	go run ./cmd/misclickedevents/main.go

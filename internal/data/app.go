@@ -7,15 +7,18 @@ import (
 	"misclicked-events/internal/data/datasource/api"
 	"misclicked-events/internal/data/datasource/sqlite"
 	"misclicked-events/internal/data/repository"
+	"misclicked-events/internal/domain/usecase"
 )
 
 var (
-	DB              *sql.DB
-	ServerRepo      *repository.ServerRepository
-	ConfigRepo      *repository.ConfigRepository
-	CompetitionRepo *repository.CompetitionRepository
-	HiscoreRepo     *repository.HiscoreRepository
-	ParticipantRepo *repository.ParticipantRepository
+	DB                   *sql.DB
+	ServerRepo           *repository.ServerRepository
+	ConfigRepo           *repository.ConfigRepository
+	CompetitionRepo      *repository.CompetitionRepository
+	HiscoreRepo          *repository.HiscoreRepository
+	ParticipantRepo      *repository.ParticipantRepository
+	AddAccountUseCase    *usecase.AddAccountUseCase
+	RenameAccountUseCase *usecase.RenameAccountUseCase
 )
 
 func Init(dbPath string) error {
@@ -40,6 +43,9 @@ func Init(dbPath string) error {
 
 	participantDS := sqlite.NewParticipantDataSource(DB)
 	ParticipantRepo = repository.NewParticipantRepository(participantDS)
+
+	AddAccountUseCase = usecase.NewAddAccountUseCase(ParticipantRepo, HiscoreRepo, CompetitionRepo)
+	RenameAccountUseCase = usecase.NewRenameAccountUseCase(ParticipantRepo, HiscoreRepo)
 
 	return nil
 }

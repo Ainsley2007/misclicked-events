@@ -35,76 +35,60 @@ var ConfigCommand = &discordgo.ApplicationCommand{
 }
 
 func HandleConfigCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	// Defer the response immediately to prevent timeout
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Flags: discordgo.MessageFlagsEphemeral,
-		},
-	})
-	if err != nil {
-		utils.Error("Failed to defer response for config command: %v", err)
+	if err := deferResponse(s, i, "setup-channels"); err != nil {
 		return
 	}
 
-	// Check permissions
 	if !utils.IsAdmin(i) {
-		utils.EditResponseError(s, i, fmt.Errorf("you don't have the required permissions to use this command"))
+		handleCommandError(s, i, fmt.Errorf("you don't have the required permissions to use this command"), "Permission check failed")
 		return
 	}
 
-	// Parse command options
+	if err := validateRequiredOptions(i, 2, "setup-channels"); err != nil {
+		handleCommandError(s, i, err, "Config command validation failed")
+		return
+	}
+
 	applicationCommandData := i.ApplicationCommandData().Options
-	if len(applicationCommandData) < 2 {
-		utils.EditResponseError(s, i, fmt.Errorf("invalid command options: please provide both ranking channels"))
-		return
-	}
-
-	// Extract channel IDs
 	rankingChannel := applicationCommandData[0].ChannelValue(s)
 	hiscoreChannel := applicationCommandData[1].ChannelValue(s)
 
 	if rankingChannel == nil || hiscoreChannel == nil {
-		utils.EditResponseError(s, i, fmt.Errorf("failed to retrieve channel information"))
+		handleCommandError(s, i, fmt.Errorf("failed to retrieve channel information"), "Channel retrieval failed")
 		return
 	}
 
 	rankingChannelID := rankingChannel.ID
 	hiscoreChannelID := hiscoreChannel.ID
 
-	// Validate that channels are in the same guild
 	if rankingChannel.GuildID != i.GuildID || hiscoreChannel.GuildID != i.GuildID {
-		utils.EditResponseError(s, i, fmt.Errorf("all channels must be in this server"))
+		handleCommandError(s, i, fmt.Errorf("all channels must be in this server"), "Channel validation failed")
 		return
 	}
 
-	// Handle optional category channel
 	var categoryChannelID string
 	if len(applicationCommandData) > 2 {
 		categoryChannel := applicationCommandData[2].ChannelValue(s)
 		if categoryChannel != nil && categoryChannel.GuildID == i.GuildID {
 			categoryChannelID = categoryChannel.ID
 		} else if categoryChannel != nil {
-			utils.EditResponseError(s, i, fmt.Errorf("category channel must be in this server"))
+			handleCommandError(s, i, fmt.Errorf("category channel must be in this server"), "Category channel validation failed")
 			return
 		}
 	}
 
-	// Create config object
 	config := &domain.Config{
 		RankingChannelID:  rankingChannelID,
 		HiscoreChannelID:  hiscoreChannelID,
 		CategoryChannelID: categoryChannelID,
 	}
 
-	// Save configuration
-	err = data.ConfigRepo.SaveConfig(config, i.GuildID)
+	err := data.ConfigRepo.SaveConfig(config, i.GuildID)
 	if err != nil {
-		utils.EditResponseError(s, i, fmt.Errorf("failed to save configuration: %w", err))
+		handleCommandError(s, i, fmt.Errorf("failed to save configuration: %w", err), "Config save failed")
 		return
 	}
 
-	// Build success message
 	successMessage := "✅ **Configuration saved successfully!**\n\n"
 	successMessage += fmt.Sprintf("**Ranking Channel:** <#%s>\n", rankingChannelID)
 	successMessage += fmt.Sprintf("**BOTM Channel:** <#%s>", hiscoreChannelID)

@@ -61,6 +61,8 @@ CREATE TABLE IF NOT EXISTS account(
 
 CREATE INDEX IF NOT EXISTS idx_account_participant_id ON account(participant_id);
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_account_participant_username_lower ON account(participant_id, LOWER(username));
+
 CREATE TABLE IF NOT EXISTS botm_participation(
     participant_id integer NOT NULL REFERENCES participant(id) ON DELETE CASCADE,
     botm_id integer NOT NULL REFERENCES botm(id) ON DELETE CASCADE,
