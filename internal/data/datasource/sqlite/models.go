@@ -62,3 +62,10 @@ type KotsParticipationModel struct {
 	StartAmount   int
 	CurrentAmount int
 }
+
+type ActivityModel struct {
+	ID           int64
+	Name         string
+	Type         string
+	HiscoreNames string
+}

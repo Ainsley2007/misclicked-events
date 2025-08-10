@@ -17,6 +17,8 @@ func RegisterCommands(s *discordgo.Session, force bool) {
 		StartActivityCommand,
 		EndActivityCommand,
 		RenameAccountCommand,
+		AddActivityCommand,
+		RemoveActivityCommand,
 	}
 
 	existingCommands, err := s.ApplicationCommands(s.State.User.ID, "")

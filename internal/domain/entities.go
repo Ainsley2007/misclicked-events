@@ -52,6 +52,12 @@ type Activity struct {
 	Score int
 }
 
+type ActivityEntity struct {
+	Name         string
+	Type         string
+	HiscoreNames []string
+}
+
 type Account struct {
 	DiscordID         string
 	BotmPoints        int

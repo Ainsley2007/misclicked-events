@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"misclicked-events/internal/utils"
+	"strings"
 
 	"misclicked-events/internal/data"
 
@@ -70,6 +71,67 @@ func HandleAccountAutocomplete(s *discordgo.Session, i *discordgo.InteractionCre
 			Value: account,
 		})
 	}
+
+	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionApplicationCommandAutocompleteResult,
+		Data: &discordgo.InteractionResponseData{
+			Choices: choices,
+		},
+	})
+}
+
+func HandleActivityAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	utils.Debug("HandleActivityAutocomplete: Starting autocomplete for remove-activity")
+
+	if data.ActivityRepo == nil {
+		utils.Error("ActivityRepo is nil")
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionApplicationCommandAutocompleteResult,
+			Data: &discordgo.InteractionResponseData{
+				Choices: []*discordgo.ApplicationCommandOptionChoice{},
+			},
+		})
+		return
+	}
+
+	activities, err := data.ActivityRepo.GetAllActivities()
+	if err != nil {
+		utils.Error("Failed to get activities for autocomplete: %v", err)
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionApplicationCommandAutocompleteResult,
+			Data: &discordgo.InteractionResponseData{
+				Choices: []*discordgo.ApplicationCommandOptionChoice{},
+			},
+		})
+		return
+	}
+
+	utils.Debug("HandleActivityAutocomplete: Retrieved %d activities", len(activities))
+
+	focusedOption := i.ApplicationCommandData().Options[0]
+	userInput := strings.ToLower(focusedOption.StringValue())
+
+	var choices []*discordgo.ApplicationCommandOptionChoice
+	for _, activity := range activities {
+		if len(choices) >= 25 {
+			break
+		}
+
+		activityName := strings.ToLower(activity.Name)
+		if strings.Contains(activityName, userInput) {
+			choiceName := fmt.Sprintf("%s (%s)", activity.Name, activity.Type)
+			if len(activity.HiscoreNames) > 1 {
+				choiceName = fmt.Sprintf("%s (%s) - %s", activity.Name, activity.Type, strings.Join(activity.HiscoreNames, ", "))
+			}
+
+			choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
+				Name:  choiceName,
+				Value: activity.Name,
+			})
+		}
+	}
+
+	utils.Debug("HandleActivityAutocomplete: Sending %d filtered choices (max 25)", len(choices))
 
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionApplicationCommandAutocompleteResult,

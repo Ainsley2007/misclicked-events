@@ -34,6 +34,10 @@ func handleApplicationCommand(s *discordgo.Session, i *discordgo.InteractionCrea
 		commands.HandleEndActivityCommand(s, i)
 	case "rename-account":
 		commands.HandleRenameAccountCommand(s, i)
+	case "add-activity":
+		commands.HandleAddActivityCommand(s, i)
+	case "remove-activity":
+		commands.HandleRemoveActivityCommand(s, i)
 	default:
 		utils.LogError("Unknown command", nil)
 	}
@@ -45,6 +49,8 @@ func handleAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		commands.HandleAccountAutocomplete(s, i)
 	case "rename-account":
 		commands.HandleAccountAutocomplete(s, i)
+	case "remove-activity":
+		commands.HandleActivityAutocomplete(s, i)
 	default:
 		utils.LogError("Unknown autocomplete command", nil)
 	}

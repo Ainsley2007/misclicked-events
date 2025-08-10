@@ -4,6 +4,7 @@ import (
 	"misclicked-events/internal/data/datasource/api"
 	"misclicked-events/internal/data/datasource/sqlite"
 	"misclicked-events/internal/domain"
+	"strings"
 )
 
 type ServerMapper struct{}
@@ -269,4 +270,39 @@ func (m *AccountMapper) ToModels(entity *domain.Account, serverID string) (*sqli
 	}
 
 	return participantModel, accountModels, botmParticipationModels, kotsParticipationModels
+}
+
+type ActivityMapper struct{}
+
+func NewActivityMapper() *ActivityMapper {
+	return &ActivityMapper{}
+}
+
+func (m *ActivityMapper) ToDomain(model *sqlite.ActivityModel) *domain.ActivityEntity {
+	if model == nil {
+		return nil
+	}
+
+	hiscoreNames := strings.Split(model.HiscoreNames, ",")
+	for i, name := range hiscoreNames {
+		hiscoreNames[i] = strings.TrimSpace(name)
+	}
+
+	return &domain.ActivityEntity{
+		Name:         model.Name,
+		Type:         model.Type,
+		HiscoreNames: hiscoreNames,
+	}
+}
+
+func (m *ActivityMapper) ToModel(entity *domain.ActivityEntity) *sqlite.ActivityModel {
+	if entity == nil {
+		return nil
+	}
+
+	return &sqlite.ActivityModel{
+		Name:         entity.Name,
+		Type:         entity.Type,
+		HiscoreNames: strings.Join(entity.HiscoreNames, ","),
+	}
 }

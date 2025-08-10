@@ -11,14 +11,17 @@ import (
 )
 
 var (
-	DB                   *sql.DB
-	ServerRepo           *repository.ServerRepository
-	ConfigRepo           *repository.ConfigRepository
-	CompetitionRepo      *repository.CompetitionRepository
-	HiscoreRepo          *repository.HiscoreRepository
-	ParticipantRepo      *repository.ParticipantRepository
-	AddAccountUseCase    *usecase.AddAccountUseCase
-	RenameAccountUseCase *usecase.RenameAccountUseCase
+	DB                    *sql.DB
+	ServerRepo            *repository.ServerRepository
+	ConfigRepo            *repository.ConfigRepository
+	CompetitionRepo       *repository.CompetitionRepository
+	HiscoreRepo           *repository.HiscoreRepository
+	ParticipantRepo       *repository.ParticipantRepository
+	ActivityRepo          repository.ActivityRepository
+	AddAccountUseCase     *usecase.AddAccountUseCase
+	RenameAccountUseCase  *usecase.RenameAccountUseCase
+	AddActivityUseCase    *usecase.AddActivityUseCase
+	RemoveActivityUseCase *usecase.RemoveActivityUseCase
 )
 
 func Init(dbPath string) error {
@@ -44,8 +47,13 @@ func Init(dbPath string) error {
 	participantDS := sqlite.NewParticipantDataSource(DB)
 	ParticipantRepo = repository.NewParticipantRepository(participantDS)
 
+	activityDS := sqlite.NewActivityDataSource(DB)
+	ActivityRepo = repository.NewActivityRepository(activityDS)
+
 	AddAccountUseCase = usecase.NewAddAccountUseCase(ParticipantRepo, HiscoreRepo, CompetitionRepo)
 	RenameAccountUseCase = usecase.NewRenameAccountUseCase(ParticipantRepo, HiscoreRepo)
+	AddActivityUseCase = usecase.NewAddActivityUseCase(ActivityRepo)
+	RemoveActivityUseCase = usecase.NewRemoveActivityUseCase(ActivityRepo)
 
 	return nil
 }
