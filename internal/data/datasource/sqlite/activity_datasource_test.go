@@ -414,3 +414,43 @@ func TestAddActivityUniqueConstraint(t *testing.T) {
 		t.Errorf("expected %+v, got %+v", expected, skillActivities[0])
 	}
 }
+
+func TestGetActivityByName(t *testing.T) {
+	_, ds := setupActivityDB(t)
+
+	// Add an activity
+	activity := &ActivityModel{Name: "TestBoss", Type: "boss", HiscoreNames: "Test Boss"}
+	if err := ds.AddActivity(activity); err != nil {
+		t.Fatalf("Failed to add activity: %v", err)
+	}
+
+	// Get the activity by name
+	retrieved, err := ds.GetActivityByName("TestBoss")
+	if err != nil {
+		t.Fatalf("Failed to get activity by name: %v", err)
+	}
+	if retrieved == nil {
+		t.Fatal("Expected non-nil activity")
+	}
+	if retrieved.Name != "TestBoss" || retrieved.Type != "boss" || retrieved.HiscoreNames != "Test Boss" {
+		t.Errorf("Expected TestBoss/boss/Test Boss, got %s/%s/%s", retrieved.Name, retrieved.Type, retrieved.HiscoreNames)
+	}
+
+	// Test getting non-existent name
+	nonExistent, err := ds.GetActivityByName("NonExistent")
+	if err != nil {
+		t.Fatalf("Failed to get non-existent activity: %v", err)
+	}
+	if nonExistent != nil {
+		t.Error("Expected nil for non-existent name")
+	}
+
+	// Test case sensitivity
+	caseSensitive, err := ds.GetActivityByName("testboss")
+	if err != nil {
+		t.Fatalf("Failed to get activity with different case: %v", err)
+	}
+	if caseSensitive != nil {
+		t.Error("Expected nil for case-insensitive match")
+	}
+}

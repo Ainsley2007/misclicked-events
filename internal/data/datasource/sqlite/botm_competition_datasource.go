@@ -5,10 +5,10 @@ import (
 )
 
 type BotmDataSource interface {
-	StartNewBotm(serverID, boss, password string) error
-	Start(serverID, boss, password string) error
+	Start(serverID string, activityID int64, password string) error
 	Stop(serverID string) error
 	GetCurrentBotm(serverID string) (*BotmModel, error)
+	GetCurrentBotmWithActivity(serverID string) (*BotmWithActivityModel, error)
 }
 
 func NewBotmDataSource(db *sql.DB) BotmDataSource {
@@ -17,34 +17,13 @@ func NewBotmDataSource(db *sql.DB) BotmDataSource {
 
 type botmDS struct{ db *sql.DB }
 
-func (ds *botmDS) GetCurrentBotm(serverID string) (*BotmModel, error) {
-	row := ds.db.QueryRow(`
-        SELECT id, server_id, current_boss, password, status
-        FROM botm
-        WHERE server_id = ? AND status = 'active'
-      	ORDER BY id DESC
-        LIMIT 1`,
-		serverID,
-	)
-	var b BotmModel
-	if err := row.Scan(
-		&b.ID, &b.ServerID, &b.CurrentBoss, &b.Password, &b.Status,
-	); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
-		return nil, err
-	}
-	return &b, nil
-}
-
-func (ds *botmDS) Start(serverID, boss, password string) error {
+func (ds *botmDS) Start(serverID string, activityID int64, password string) error {
 	_, err := ds.db.Exec(
 		`INSERT INTO botm
-            (server_id, current_boss, password, status)
+            (server_id, activity_id, password, status)
           VALUES (?, ?, ?, ?)`,
 		serverID,
-		boss,
+		activityID,
 		password,
 		"active",
 	)
@@ -64,36 +43,53 @@ func (ds *botmDS) Stop(serverID string) error {
 	return err
 }
 
-func (ds *botmDS) StartNewBotm(serverID, boss, password string) error {
-	tx, err := ds.db.Begin()
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	if _, err := tx.Exec(
-		`UPDATE botm
-            SET status = ?
-          WHERE server_id = ? 
-            AND status = ?`,
-		"done",
+func (ds *botmDS) GetCurrentBotm(serverID string) (*BotmModel, error) {
+	row := ds.db.QueryRow(`
+        SELECT id, server_id, activity_id, password, status
+        FROM botm
+        WHERE server_id = ? AND status = 'active'
+      	ORDER BY id DESC
+        LIMIT 1`,
 		serverID,
-		"active",
+	)
+
+	var b BotmModel
+	if err := row.Scan(
+		&b.ID, &b.ServerID, &b.ActivityID, &b.Password, &b.Status,
 	); err != nil {
-		return err
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
 	}
 
-	if _, err := tx.Exec(
-		`INSERT INTO botm
-            (server_id, current_boss, password, status)
-          VALUES (?, ?, ?, ?)`,
+	return &b, nil
+}
+
+func (ds *botmDS) GetCurrentBotmWithActivity(serverID string) (*BotmWithActivityModel, error) {
+	row := ds.db.QueryRow(`
+        SELECT b.id, b.server_id, b.activity_id, b.password, b.status,
+               a.id, a.name, a.type, a.hiscore_names
+        FROM botm b
+        JOIN activity a ON b.activity_id = a.id
+        WHERE b.server_id = ? AND b.status = 'active'
+      	ORDER BY b.id DESC
+        LIMIT 1`,
 		serverID,
-		boss,
-		password,
-		"active",
+	)
+
+	var b BotmWithActivityModel
+	var a ActivityModel
+	if err := row.Scan(
+		&b.ID, &b.ServerID, &b.ActivityID, &b.Password, &b.Status,
+		&a.ID, &a.Name, &a.Type, &a.HiscoreNames,
 	); err != nil {
-		return err
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
 	}
 
-	return tx.Commit()
+	b.Activity = &a
+	return &b, nil
 }

@@ -77,10 +77,11 @@ func (m *BotmMapper) ToDomain(model *sqlite.BotmModel) *domain.Botm {
 		return nil
 	}
 	return &domain.Botm{
-		ID:          model.ID,
-		CurrentBoss: model.CurrentBoss,
-		Password:    model.Password,
-		Status:      model.Status,
+		ID:         model.ID,
+		ServerID:   model.ServerID,
+		ActivityID: model.ActivityID,
+		Password:   model.Password,
+		Status:     model.Status,
 	}
 }
 
@@ -89,11 +90,28 @@ func (m *BotmMapper) ToModel(entity *domain.Botm, serverID string) *sqlite.BotmM
 		return nil
 	}
 	return &sqlite.BotmModel{
-		ID:          entity.ID,
-		ServerID:    serverID,
-		CurrentBoss: entity.CurrentBoss,
-		Password:    entity.Password,
-		Status:      entity.Status,
+		ID:         entity.ID,
+		ServerID:   serverID,
+		ActivityID: entity.ActivityID,
+		Password:   entity.Password,
+		Status:     entity.Status,
+	}
+}
+
+func (m *BotmMapper) ToDomainActivity(model *sqlite.ActivityModel) *domain.ActivityEntity {
+	if model == nil {
+		return nil
+	}
+
+	hiscoreNames := strings.Split(model.HiscoreNames, ",")
+	for i, name := range hiscoreNames {
+		hiscoreNames[i] = strings.TrimSpace(name)
+	}
+
+	return &domain.ActivityEntity{
+		Name:         model.Name,
+		Type:         model.Type,
+		HiscoreNames: hiscoreNames,
 	}
 }
 

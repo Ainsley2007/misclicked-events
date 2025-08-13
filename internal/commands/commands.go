@@ -15,7 +15,6 @@ func RegisterCommands(s *discordgo.Session, force bool) {
 		RemoveAccountCommand,
 		TrackedAccountsCommand,
 		StartActivityCommand,
-		EndActivityCommand,
 		RenameAccountCommand,
 		AddActivityCommand,
 		RemoveActivityCommand,

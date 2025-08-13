@@ -93,6 +93,39 @@ func (r *HiscoreRepository) GetBossKC(username, bossName string) (int, error) {
 	return activity.Score, nil
 }
 
+func (r *HiscoreRepository) GetBossKCCombined(username string, bossNames []string) (int, error) {
+	if username == "" {
+		utils.Error("GetBossKCCombined called with empty username")
+		return 0, fmt.Errorf("username cannot be empty")
+	}
+
+	if len(bossNames) == 0 {
+		utils.Error("GetBossKCCombined called with empty boss names")
+		return 0, fmt.Errorf("boss names cannot be empty")
+	}
+
+	utils.Debug("Getting combined boss KC for player %s on bosses: %v", username, bossNames)
+	hiscoreData, err := r.FetchHiscore(username)
+	if err != nil {
+		utils.Error("Failed to fetch hiscore data for combined boss KC check for player %s: %v", username, err)
+		return 0, fmt.Errorf("failed to get boss KC")
+	}
+
+	totalKC := 0
+	for _, bossName := range bossNames {
+		activity, found := FindActivity(hiscoreData.Activities, bossName)
+		if found {
+			totalKC += activity.Score
+			utils.Debug("Found boss %s for player %s with KC %d", bossName, username, activity.Score)
+		} else {
+			utils.Debug("Boss %s not found in activities for player %s", bossName, username)
+		}
+	}
+
+	utils.Debug("Total combined KC for player %s: %d", username, totalKC)
+	return totalKC, nil
+}
+
 func FindSkill(skills []domain.Skill, name string) (*domain.Skill, bool) {
 	utils.Debug("Searching for skill %s in %d skills", name, len(skills))
 	for i, skill := range skills {

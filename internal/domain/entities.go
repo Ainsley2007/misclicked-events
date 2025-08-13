@@ -16,10 +16,20 @@ type Config struct {
 }
 
 type Botm struct {
-	ID          int64
-	CurrentBoss string
-	Password    string
-	Status      string
+	ID         int64
+	ServerID   string
+	ActivityID int64
+	Password   string
+	Status     string
+}
+
+type BotmWithActivity struct {
+	ID         int64
+	ServerID   string
+	ActivityID int64
+	Password   string
+	Status     string
+	Activity   *ActivityEntity
 }
 
 type Kots struct {
@@ -53,6 +63,7 @@ type Activity struct {
 }
 
 type ActivityEntity struct {
+	ID           int64
 	Name         string
 	Type         string
 	HiscoreNames []string

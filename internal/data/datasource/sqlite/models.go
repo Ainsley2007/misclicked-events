@@ -17,11 +17,20 @@ type ConfigModel struct {
 }
 
 type BotmModel struct {
-	ID          int64
-	ServerID    string
-	CurrentBoss string
-	Password    string
-	Status      string
+	ID         int64
+	ServerID   string
+	ActivityID int64
+	Password   string
+	Status     string
+}
+
+type BotmWithActivityModel struct {
+	ID         int64
+	ServerID   string
+	ActivityID int64
+	Password   string
+	Status     string
+	Activity   *ActivityModel
 }
 
 type KotsModel struct {

@@ -12,6 +12,7 @@ type ActivityRepository interface {
 	RemoveActivity(name string) error
 	GetActivityListByType(activityType string) ([]*domain.ActivityEntity, error)
 	GetAllActivities() ([]*domain.ActivityEntity, error)
+	GetActivityByName(name string) (*domain.ActivityEntity, error)
 }
 
 type activityRepository struct {
@@ -81,4 +82,21 @@ func (r *activityRepository) GetAllActivities() ([]*domain.ActivityEntity, error
 
 	utils.Info("Retrieved %d total activities", len(entities))
 	return entities, nil
+}
+
+func (r *activityRepository) GetActivityByName(name string) (*domain.ActivityEntity, error) {
+	utils.Info("Getting activity by name: %s", name)
+	model, err := r.datasource.GetActivityByName(name)
+	if err != nil {
+		utils.Error("Failed to get activity by name %s: %v", name, err)
+		return nil, err
+	}
+	if model == nil {
+		utils.Info("No activity found for name: %s", name)
+		return nil, nil
+	}
+
+	entity := r.mapper.ToDomain(model)
+	utils.Info("Successfully retrieved activity: %s", entity.Name)
+	return entity, nil
 }

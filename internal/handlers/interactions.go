@@ -31,7 +31,7 @@ func handleApplicationCommand(s *discordgo.Session, i *discordgo.InteractionCrea
 	case "start":
 		commands.HandleStartActivityCommand(s, i)
 	case "end":
-		commands.HandleEndActivityCommand(s, i)
+		// commands.HandleEndActivityCommand(s, i)
 	case "rename-account":
 		commands.HandleRenameAccountCommand(s, i)
 	case "add-activity":

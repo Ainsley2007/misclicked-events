@@ -49,7 +49,9 @@ func HandleTrackedAccountsCommand(s *discordgo.Session, i *discordgo.Interaction
 			handleCommandError(s, i, err, "Failed to get competition details")
 			return
 		}
-		currentCompetition = botm.CurrentBoss
+		if botm != nil && botm.Activity != nil {
+			currentCompetition = botm.Activity.Name
+		}
 	}
 
 	var description string

@@ -9,6 +9,7 @@ type ActivityDataSource interface {
 	RemoveActivity(name string) error
 	GetActivityListByType(activityType string) ([]*ActivityModel, error)
 	GetAllActivities() ([]*ActivityModel, error)
+	GetActivityByName(name string) (*ActivityModel, error)
 }
 
 func NewActivityDataSource(db *sql.DB) ActivityDataSource {
@@ -65,4 +66,16 @@ func (ds *activityDS) GetAllActivities() ([]*ActivityModel, error) {
 		list = append(list, a)
 	}
 	return list, rows.Err()
+}
+
+func (ds *activityDS) GetActivityByName(name string) (*ActivityModel, error) {
+	row := ds.db.QueryRow(`SELECT id, name, type, hiscore_names FROM activity WHERE name = ?`, name)
+	var a ActivityModel
+	if err := row.Scan(&a.ID, &a.Name, &a.Type, &a.HiscoreNames); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &a, nil
 }

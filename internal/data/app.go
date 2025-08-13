@@ -22,6 +22,7 @@ var (
 	RenameAccountUseCase  *usecase.RenameAccountUseCase
 	AddActivityUseCase    *usecase.AddActivityUseCase
 	RemoveActivityUseCase *usecase.RemoveActivityUseCase
+	StartActivityUseCase  *usecase.StartActivityUseCase
 )
 
 func Init(dbPath string) error {
@@ -37,12 +38,12 @@ func Init(dbPath string) error {
 	cDS := sqlite.NewConfigDataSource(DB)
 	ConfigRepo = repository.NewConfigRepository(cDS)
 
+	hiscoreDS := api.NewHiscoreDataSource()
+	HiscoreRepo = repository.NewHiscoreRepository(hiscoreDS)
+
 	botmDS := sqlite.NewBotmDataSource(DB)
 	kotsDS := sqlite.NewKotsDataSource(DB)
 	CompetitionRepo = repository.NewCompetitionRepository(botmDS, kotsDS)
-
-	hiscoreDS := api.NewHiscoreDataSource()
-	HiscoreRepo = repository.NewHiscoreRepository(hiscoreDS)
 
 	participantDS := sqlite.NewParticipantDataSource(DB)
 	ParticipantRepo = repository.NewParticipantRepository(participantDS)
@@ -54,6 +55,7 @@ func Init(dbPath string) error {
 	RenameAccountUseCase = usecase.NewRenameAccountUseCase(ParticipantRepo, HiscoreRepo)
 	AddActivityUseCase = usecase.NewAddActivityUseCase(ActivityRepo)
 	RemoveActivityUseCase = usecase.NewRemoveActivityUseCase(ActivityRepo)
+	StartActivityUseCase = usecase.NewStartActivityUseCase(CompetitionRepo, ParticipantRepo, ActivityRepo, HiscoreRepo)
 
 	return nil
 }

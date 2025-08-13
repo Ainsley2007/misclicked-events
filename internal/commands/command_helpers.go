@@ -140,3 +140,65 @@ func HandleActivityAutocomplete(s *discordgo.Session, i *discordgo.InteractionCr
 		},
 	})
 }
+
+func HandleStartActivityAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	utils.Debug("HandleStartActivityAutocomplete: Starting autocomplete for start-activity")
+
+	if data.ActivityRepo == nil {
+		utils.Error("ActivityRepo is nil")
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionApplicationCommandAutocompleteResult,
+			Data: &discordgo.InteractionResponseData{
+				Choices: []*discordgo.ApplicationCommandOptionChoice{},
+			},
+		})
+		return
+	}
+
+	activities, err := data.ActivityRepo.GetActivityListByType("boss")
+	if err != nil {
+		utils.Error("Failed to get boss activities for autocomplete: %v", err)
+		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+			Type: discordgo.InteractionApplicationCommandAutocompleteResult,
+			Data: &discordgo.InteractionResponseData{
+				Choices: []*discordgo.ApplicationCommandOptionChoice{},
+			},
+		})
+		return
+	}
+
+	utils.Debug("HandleStartActivityAutocomplete: Retrieved %d boss activities", len(activities))
+
+	focusedOption := i.ApplicationCommandData().Options[0]
+	userInput := strings.ToLower(focusedOption.StringValue())
+
+	var choices []*discordgo.ApplicationCommandOptionChoice
+	for _, activity := range activities {
+		if len(choices) >= 25 {
+			break
+		}
+
+		activityName := strings.ToLower(activity.Name)
+		if strings.Contains(activityName, userInput) {
+			choiceName := fmt.Sprintf("%s - %s", activity.Name, strings.Join(activity.HiscoreNames, ", "))
+
+			choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
+				Name:  choiceName,
+				Value: activity.Name,
+			})
+		}
+	}
+
+	utils.Debug("HandleStartActivityAutocomplete: Sending %d filtered choices (max 25)", len(choices))
+
+	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		Type: discordgo.InteractionApplicationCommandAutocompleteResult,
+		Data: &discordgo.InteractionResponseData{
+			Choices: choices,
+		},
+	})
+}
+
+func IsAdmin(i *discordgo.InteractionCreate) bool {
+	return utils.IsAdmin(i)
+}

@@ -7,11 +7,17 @@ import (
 	"strings"
 )
 
+type ParticipantWithAccounts struct {
+	DiscordID string
+	Accounts  []string
+}
+
 type ParticipantDataSource interface {
 	AddAccount(serverID, discordID, accountName string) error
 	RemoveAccount(serverID, discordID, accountName string) error
 	RenameAccount(serverID, discordID, oldUsername, newUsername string) error
 	GetTrackedAccounts(serverID, discordID string) ([]string, error)
+	GetAllParticipantsWithAccounts(serverID string) ([]ParticipantWithAccounts, error)
 	AddBotmParticipation(participantID string, botmID int64, startingKC int) error
 }
 
@@ -190,4 +196,46 @@ func (ds *participantDS) AddBotmParticipation(participantID string, botmID int64
 	}
 
 	return nil
+}
+
+func (ds *participantDS) GetAllParticipantsWithAccounts(serverID string) ([]ParticipantWithAccounts, error) {
+	utils.Debug("Getting all participants with accounts for server %s", serverID)
+
+	rows, err := ds.db.Query(`
+		SELECT p.discord_id, a.username
+		FROM participant p
+		JOIN account a ON p.discord_id = a.participant_id
+		WHERE p.server_id = ?
+		ORDER BY p.discord_id, LOWER(a.username)`, serverID)
+	if err != nil {
+		utils.Error("Failed to get participants with accounts for server %s: %v", serverID, err)
+		return nil, fmt.Errorf("failed to get participants with accounts")
+	}
+	defer rows.Close()
+
+	participantsMap := make(map[string][]string)
+	for rows.Next() {
+		var discordID, username string
+		if err := rows.Scan(&discordID, &username); err != nil {
+			utils.Error("Failed to scan participant data for server %s: %v", serverID, err)
+			return nil, fmt.Errorf("failed to get participants with accounts")
+		}
+		participantsMap[discordID] = append(participantsMap[discordID], username)
+	}
+
+	if err := rows.Err(); err != nil {
+		utils.Error("Error iterating over participants for server %s: %v", serverID, err)
+		return nil, fmt.Errorf("failed to get participants with accounts")
+	}
+
+	var participants []ParticipantWithAccounts
+	for discordID, accounts := range participantsMap {
+		participants = append(participants, ParticipantWithAccounts{
+			DiscordID: discordID,
+			Accounts:  accounts,
+		})
+	}
+
+	utils.Debug("Found %d participants with accounts for server %s", len(participants), serverID)
+	return participants, nil
 }

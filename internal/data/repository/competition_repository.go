@@ -30,18 +30,30 @@ func (r *CompetitionRepository) HasRunningBotmCompetition(serverID string) (bool
 	return competition != nil, nil
 }
 
-func (r *CompetitionRepository) GetBotm(serverID string) (*domain.Botm, error) {
-	botmModel, err := r.botmDS.GetCurrentBotm(serverID)
-	if err != nil {
-		return nil, err
-	}
-	return r.botmMapper.ToDomain(botmModel), nil
-}
-
-func (r *CompetitionRepository) StartBotm(serverID, currentBoss, password string) error {
-	return r.botmDS.Start(serverID, currentBoss, password)
+func (r *CompetitionRepository) StartBotm(serverID string, activityID int64, password string) error {
+	return r.botmDS.Start(serverID, activityID, password)
 }
 
 func (r *CompetitionRepository) StopBotm(serverID string) error {
 	return r.botmDS.Stop(serverID)
+}
+
+func (r *CompetitionRepository) GetBotm(serverID string) (*domain.BotmWithActivity, error) {
+	botmModel, err := r.botmDS.GetCurrentBotmWithActivity(serverID)
+	if err != nil {
+		return nil, err
+	}
+	if botmModel == nil {
+		return nil, nil
+	}
+
+	activityEntity := r.botmMapper.ToDomainActivity(botmModel.Activity)
+	return &domain.BotmWithActivity{
+		ID:         botmModel.ID,
+		ServerID:   botmModel.ServerID,
+		ActivityID: botmModel.ActivityID,
+		Password:   botmModel.Password,
+		Status:     botmModel.Status,
+		Activity:   activityEntity,
+	}, nil
 }

@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"misclicked-events/internal/constants"
 	"misclicked-events/internal/data"
 	"misclicked-events/internal/utils"
 	"strings"
@@ -15,26 +14,11 @@ var StartActivityCommand = &discordgo.ApplicationCommand{
 	Description: "Select an activity to start",
 	Options: []*discordgo.ApplicationCommandOption{
 		{
-			Type:        discordgo.ApplicationCommandOptionString,
-			Name:        "choice",
-			Description: "Choose an activity",
-			Required:    true,
-			Choices: []*discordgo.ApplicationCommandOptionChoice{
-				{Name: "Colosseum", Value: "COLO"},
-				{Name: "Corporeal beast", Value: "Corp"},
-				{Name: "Wildy boss trio (Vet'ion, Callisto, Venenatis)", Value: "Wildy"},
-				{Name: "COX", Value: "COX"},
-				{Name: "Huey", Value: "Huey"},
-				{Name: "Inferno", Value: "Inferno"},
-				{Name: "Nex", Value: "Nex"},
-				{Name: "NM + PNM", Value: "NM"},
-				{Name: "Sarachnis", Value: "Sarachnis"},
-				{Name: "TOA", Value: "TOA"},
-				{Name: "TOB", Value: "TOB"},
-				{Name: "Zulrah", Value: "Zulrah"},
-				{Name: "DT2", Value: "DT2"},
-				{Name: "Mokha", Value: "MOKHA"},
-			},
+			Type:         discordgo.ApplicationCommandOptionString,
+			Name:         "choice",
+			Description:  "Choose an activity",
+			Required:     true,
+			Autocomplete: true,
 		},
 		{
 			Type:        discordgo.ApplicationCommandOptionString,
@@ -46,40 +30,22 @@ var StartActivityCommand = &discordgo.ApplicationCommand{
 }
 
 func HandleStartActivityCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	if !utils.IsAdmin(i) {
+	if !IsAdmin(i) {
 		utils.RespondWithError(s, i, fmt.Errorf("you do not have the required permissions to use this command"))
-		return
-	}
-
-	currentBoss := data.GetCurrentBoss(i.GuildID)
-	if len(currentBoss) > 0 {
-		response := fmt.Sprintf("An activity has already been selected: \"**%s**\", You need to end this activity before starting a new one.", currentBoss)
-		utils.RespondWithMessage(s, i, "%s", response)
 		return
 	}
 
 	choice := i.ApplicationCommandData().Options[0].StringValue()
 	password := i.ApplicationCommandData().Options[1].StringValue()
 
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseDeferredChannelMessageWithSource,
-	})
+	err := deferResponse(s, i, "start-activity")
 	if err != nil {
-		fmt.Println("Error deferring the response:", err)
 		return
 	}
 
-	err = data.CompetitionRepo.StartBotm(i.GuildID, choice, password)
-
-	//err = data.StartCompetition(i.GuildID, choice, password)
+	botm, err := data.StartActivityUseCase.Execute(i.GuildID, choice, password)
 	if err != nil {
-		errorMessage := fmt.Sprint("Something went wrong trying to start this activity: ", err)
-		_, err := s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
-			Content: &errorMessage,
-		})
-		if err != nil {
-			fmt.Println("Error editing interaction response:", err)
-		}
+		handleCommandError(s, i, err, "Failed to start activity")
 		return
 	}
 
@@ -88,7 +54,7 @@ func HandleStartActivityCommand(s *discordgo.Session, i *discordgo.InteractionCr
 	successMessage := fmt.Sprintf(
 		"Activity selected: **%s**, now tracking kc for: **%s**",
 		choice,
-		strings.Join(constants.Activities[choice].BossNames, ", "),
+		strings.Join(botm.Activity.HiscoreNames, ", "),
 	)
 	_, err = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
 		Content: &successMessage,
@@ -96,7 +62,6 @@ func HandleStartActivityCommand(s *discordgo.Session, i *discordgo.InteractionCr
 	if err != nil {
 		fmt.Println("Error editing interaction response:", err)
 	}
-
 }
 
 func updateCategoryChannelName(s *discordgo.Session, guildID, currentBoss string) {

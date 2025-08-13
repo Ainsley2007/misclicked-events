@@ -158,3 +158,20 @@ func (r *ParticipantRepository) AddBotmParticipation(participantID string, botmI
 	utils.Info("Successfully added BOTM participation for participant %s in BOTM %d with starting KC %d", participantID, botmID, startingKC)
 	return nil
 }
+
+func (r *ParticipantRepository) GetAllParticipantsWithAccounts(serverID string) ([]sqlite.ParticipantWithAccounts, error) {
+	if serverID == "" {
+		utils.Error("GetAllParticipantsWithAccounts called with empty server ID")
+		return nil, fmt.Errorf("server ID cannot be empty")
+	}
+
+	utils.Debug("Getting all participants with accounts for server %s", serverID)
+	participants, err := r.ds.GetAllParticipantsWithAccounts(serverID)
+	if err != nil {
+		utils.Error("Failed to get participants with accounts for server %s: %v", serverID, err)
+		return nil, fmt.Errorf("failed to get participants with accounts")
+	}
+
+	utils.Info("Successfully retrieved %d participants with accounts for server %s", len(participants), serverID)
+	return participants, nil
+}
