@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 // Skill represents a single skill object.
@@ -24,7 +25,8 @@ type Activity struct {
 }
 
 func CheckIfPlayerExists(username string) bool {
-	url := fmt.Sprintf("https://secure.runescape.com/m=hiscore_oldschool/index_lite.ws?player=%s", username)
+	encodedUsername := url.QueryEscape(username)
+	url := fmt.Sprintf("https://secure.runescape.com/m=hiscore_oldschool/index_lite.ws?player=%s", encodedUsername)
 	resp, err := http.Get(url)
 	if err != nil {
 		return false
@@ -37,7 +39,8 @@ func CheckIfPlayerExists(username string) bool {
 }
 
 func FetchHiscore(username string) ([]Skill, []Activity, error) {
-	url := fmt.Sprintf("https://secure.runescape.com/m=hiscore_oldschool/index_lite.json?player=%s", username)
+	encodedUsername := url.QueryEscape(username)
+	url := fmt.Sprintf("https://secure.runescape.com/m=hiscore_oldschool/index_lite.json?player=%s", encodedUsername)
 	resp, err := http.Get(url)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to fetch hiscore data: %w", err)
