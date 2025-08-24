@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"misclicked-events/internal/data"
-	"misclicked-events/internal/utils"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -31,15 +30,28 @@ var StartActivityCommand = &discordgo.ApplicationCommand{
 
 func HandleStartActivityCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	if !IsAdmin(i) {
-		utils.RespondWithError(s, i, fmt.Errorf("you do not have the required permissions to use this command"))
+		handleCommandError(s, i, fmt.Errorf("you do not have the required permissions to use this command"), "Permission check failed")
 		return
 	}
 
-	choice := i.ApplicationCommandData().Options[0].StringValue()
-	password := i.ApplicationCommandData().Options[1].StringValue()
+	if err := deferResponse(s, i, "start-activity"); err != nil {
+		return
+	}
 
-	err := deferResponse(s, i, "start-activity")
+	if err := validateRequiredOptions(i, 2, "start-activity"); err != nil {
+		handleCommandError(s, i, err, "Start activity command validation failed")
+		return
+	}
+
+	choice, err := getStringOption(i, 0)
 	if err != nil {
+		handleCommandError(s, i, err, "Failed to get choice option")
+		return
+	}
+
+	password, err := getStringOption(i, 1)
+	if err != nil {
+		handleCommandError(s, i, err, "Failed to get password option")
 		return
 	}
 
@@ -56,12 +68,7 @@ func HandleStartActivityCommand(s *discordgo.Session, i *discordgo.InteractionCr
 		choice,
 		strings.Join(botm.Activity.HiscoreNames, ", "),
 	)
-	_, err = s.InteractionResponseEdit(i.Interaction, &discordgo.WebhookEdit{
-		Content: &successMessage,
-	})
-	if err != nil {
-		fmt.Println("Error editing interaction response:", err)
-	}
+	sendTextResponse(s, i, successMessage)
 }
 
 func updateCategoryChannelName(s *discordgo.Session, guildID, currentBoss string) {

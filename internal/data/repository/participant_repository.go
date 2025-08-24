@@ -149,13 +149,38 @@ func (r *ParticipantRepository) AddBotmParticipation(participantID string, botmI
 	}
 
 	utils.Debug("Adding BOTM participation for participant %s in BOTM %d with starting KC %d", participantID, botmID, startingKC)
-	err := r.ds.AddBotmParticipation(participantID, botmID, startingKC)
+
+	// Check if participation already exists
+	existingParticipation, err := r.ds.GetBotmParticipation(participantID, botmID)
 	if err != nil {
-		utils.Error("Failed to add BOTM participation for participant %s in BOTM %d: %v", participantID, botmID, err)
-		return fmt.Errorf("failed to add participation")
+		utils.Error("Failed to check existing BOTM participation for participant %s in BOTM %d: %v", participantID, botmID, err)
+		return fmt.Errorf("failed to check existing participation")
 	}
 
-	utils.Info("Successfully added BOTM participation for participant %s in BOTM %d with starting KC %d", participantID, botmID, startingKC)
+	if existingParticipation == nil {
+		// No existing participation, create new record
+		err = r.ds.CreateBotmParticipation(participantID, botmID, startingKC)
+		if err != nil {
+			utils.Error("Failed to create BOTM participation for participant %s in BOTM %d: %v", participantID, botmID, err)
+			return fmt.Errorf("failed to create participation")
+		}
+		utils.Info("Successfully created new BOTM participation for participant %s in BOTM %d with starting KC %d", participantID, botmID, startingKC)
+	} else {
+		// Participation exists - this means the competition is already running
+		// Both start_amount and current_amount should increase by the new account's KC
+		// This maintains fair competition while preserving progress
+		newStartAmount := existingParticipation.StartAmount + startingKC
+		newCurrentAmount := existingParticipation.CurrentAmount + startingKC
+
+		err = r.ds.UpdateBotmParticipation(participantID, botmID, newStartAmount, newCurrentAmount)
+		if err != nil {
+			utils.Error("Failed to update BOTM participation for participant %s in BOTM %d: %v", participantID, botmID, err)
+			return fmt.Errorf("failed to update participation")
+		}
+		utils.Info("Successfully updated BOTM participation for participant %s in BOTM %d: added %d KC (start: %d->%d, current: %d->%d)",
+			participantID, botmID, startingKC, existingParticipation.StartAmount, newStartAmount, existingParticipation.CurrentAmount, newCurrentAmount)
+	}
+
 	return nil
 }
 

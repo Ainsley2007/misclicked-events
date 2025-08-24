@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"misclicked-events/internal/utils"
 	"strings"
+	"time"
 
 	"misclicked-events/internal/data"
 
@@ -201,4 +202,63 @@ func HandleStartActivityAutocomplete(s *discordgo.Session, i *discordgo.Interact
 
 func IsAdmin(i *discordgo.InteractionCreate) bool {
 	return utils.IsAdmin(i)
+}
+
+func createSuccessEmbed(title, description string, i *discordgo.InteractionCreate) *discordgo.MessageEmbed {
+	return &discordgo.MessageEmbed{
+		Title:       title,
+		Description: description,
+		Color:       0x00ff00,
+		Footer: &discordgo.MessageEmbedFooter{
+			Text: fmt.Sprintf("Requested by %s", i.Member.User.Username),
+		},
+		Timestamp: time.Now().Format(time.RFC3339),
+	}
+}
+
+func createErrorEmbed(title, description string, i *discordgo.InteractionCreate) *discordgo.MessageEmbed {
+	return &discordgo.MessageEmbed{
+		Title:       title,
+		Description: description,
+		Color:       0xff0000,
+		Footer: &discordgo.MessageEmbedFooter{
+			Text: fmt.Sprintf("Requested by %s", i.Member.User.Username),
+		},
+		Timestamp: time.Now().Format(time.RFC3339),
+	}
+}
+
+func createInfoEmbed(title, description string, i *discordgo.InteractionCreate) *discordgo.MessageEmbed {
+	return &discordgo.MessageEmbed{
+		Title:       title,
+		Description: description,
+		Color:       0x0099ff,
+		Footer: &discordgo.MessageEmbedFooter{
+			Text: fmt.Sprintf("Requested by %s", i.Member.User.Username),
+		},
+		Timestamp: time.Now().Format(time.RFC3339),
+	}
+}
+
+func sendEmbedResponse(s *discordgo.Session, i *discordgo.InteractionCreate, embed *discordgo.MessageEmbed) {
+	utils.EditResponseEmbed(s, i, embed)
+}
+
+func sendTextResponse(s *discordgo.Session, i *discordgo.InteractionCreate, content string) {
+	utils.EditResponseMessage(s, i, content)
+}
+
+func handleAccountNotFoundError(s *discordgo.Session, i *discordgo.InteractionCreate, username string) {
+	embed := createErrorEmbed("❌ Account Not Found", "This account is not being tracked.", i)
+	sendEmbedResponse(s, i, embed)
+}
+
+func handlePlayerNotFoundError(s *discordgo.Session, i *discordgo.InteractionCreate, username string) {
+	embed := createErrorEmbed("❌ Player Not Found", "This player does not exist in OSRS.", i)
+	sendEmbedResponse(s, i, embed)
+}
+
+func handleAccountAlreadyTrackedError(s *discordgo.Session, i *discordgo.InteractionCreate, username string) {
+	embed := createErrorEmbed("❌ Account Already Tracked", "This account is already being tracked.", i)
+	sendEmbedResponse(s, i, embed)
 }

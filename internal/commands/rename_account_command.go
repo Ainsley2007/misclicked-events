@@ -3,9 +3,7 @@ package commands
 import (
 	"fmt"
 	"misclicked-events/internal/data"
-	"misclicked-events/internal/utils"
 	"strings"
-	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -55,36 +53,18 @@ func HandleRenameAccountCommand(s *discordgo.Session, i *discordgo.InteractionCr
 	err = data.RenameAccountUseCase.Execute(i.GuildID, i.Member.User.ID, oldUsername, newUsername)
 	if err != nil {
 		if strings.Contains(err.Error(), "does not exist") {
-			embed := &discordgo.MessageEmbed{
-				Title:       "❌ Player Not Found",
-				Description: "The new player does not exist in OSRS.",
-				Color:       0xff0000,
-			}
-			utils.EditResponseEmbed(s, i, embed)
+			handlePlayerNotFoundError(s, i, newUsername)
 			return
 		}
 		if strings.Contains(err.Error(), "not found") {
-			embed := &discordgo.MessageEmbed{
-				Title:       "❌ Account Not Found",
-				Description: "The old account is not being tracked.",
-				Color:       0xff0000,
-			}
-			utils.EditResponseEmbed(s, i, embed)
+			handleAccountNotFoundError(s, i, oldUsername)
 			return
 		}
 		handleCommandError(s, i, err, "Failed to rename account")
 		return
 	}
 
-	embed := &discordgo.MessageEmbed{
-		Title:       "✅ Account Renamed Successfully",
-		Description: fmt.Sprintf("Successfully renamed account **%s** → **%s**\n\nYour account has been updated in all competitions.", oldUsername, newUsername),
-		Color:       0x00ff00,
-		Footer: &discordgo.MessageEmbedFooter{
-			Text: fmt.Sprintf("Requested by %s", i.Member.User.Username),
-		},
-		Timestamp: time.Now().Format(time.RFC3339),
-	}
-
-	utils.EditResponseEmbed(s, i, embed)
+	description := fmt.Sprintf("Successfully renamed account **%s** → **%s**\n\nYour account has been updated in all competitions.", oldUsername, newUsername)
+	embed := createSuccessEmbed("✅ Account Renamed Successfully", description, i)
+	sendEmbedResponse(s, i, embed)
 }

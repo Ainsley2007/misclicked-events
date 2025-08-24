@@ -51,6 +51,8 @@ func handleAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		commands.HandleAccountAutocomplete(s, i)
 	case "remove-activity":
 		commands.HandleActivityAutocomplete(s, i)
+	case "start":
+		commands.HandleStartActivityAutocomplete(s, i)
 	default:
 		utils.LogError("Unknown autocomplete command", nil)
 	}

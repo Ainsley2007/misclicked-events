@@ -3,8 +3,6 @@ package commands
 import (
 	"fmt"
 	"misclicked-events/internal/data"
-	"misclicked-events/internal/utils"
-	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -26,13 +24,9 @@ func HandleTrackedAccountsCommand(s *discordgo.Session, i *discordgo.Interaction
 	}
 
 	if len(accounts) == 0 {
-		embed := &discordgo.MessageEmbed{
-			Title:       "📋 Your Tracked Accounts",
-			Description: "You don't have any accounts tracked yet.\nUse `/add-account` to start tracking your OSRS accounts!",
-			Color:       0x0099ff,
-		}
-
-		utils.EditResponseEmbed(s, i, embed)
+		description := "You don't have any accounts tracked yet.\nUse `/add-account` to start tracking your OSRS accounts!"
+		embed := createInfoEmbed("📋 Your Tracked Accounts", description, i)
+		sendEmbedResponse(s, i, embed)
 		return
 	}
 
@@ -75,15 +69,6 @@ func HandleTrackedAccountsCommand(s *discordgo.Session, i *discordgo.Interaction
 
 	description += "\nUse `/remove-account` to stop tracking an account."
 
-	embed := &discordgo.MessageEmbed{
-		Title:       "📋 Your Tracked Accounts",
-		Description: description,
-		Color:       0x0099ff,
-		Footer: &discordgo.MessageEmbedFooter{
-			Text: fmt.Sprintf("Requested by %s", i.Member.User.Username),
-		},
-		Timestamp: time.Now().Format(time.RFC3339),
-	}
-
-	utils.EditResponseEmbed(s, i, embed)
+	embed := createInfoEmbed("📋 Your Tracked Accounts", description, i)
+	sendEmbedResponse(s, i, embed)
 }

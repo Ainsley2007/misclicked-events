@@ -22,7 +22,7 @@ func RegisterCommands(s *discordgo.Session, force bool) {
 
 	existingCommands, err := s.ApplicationCommands(s.State.User.ID, "")
 	if err != nil {
-		utils.LogError("Error fetching existing commands:", err)
+		utils.Error("Error fetching existing commands: %v", err)
 		return
 	}
 
@@ -33,7 +33,7 @@ func RegisterCommands(s *discordgo.Session, force bool) {
 
 	_, err = s.ApplicationCommandBulkOverwrite(s.State.User.ID, "", commands)
 	if err != nil {
-		utils.LogError("Error overwriting commands:", err)
+		utils.Error("Error overwriting commands: %v", err)
 	} else {
 		fmt.Println("Commands registered successfully.")
 	}

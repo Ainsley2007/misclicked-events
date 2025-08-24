@@ -19,6 +19,9 @@ type ParticipantDataSource interface {
 	GetTrackedAccounts(serverID, discordID string) ([]string, error)
 	GetAllParticipantsWithAccounts(serverID string) ([]ParticipantWithAccounts, error)
 	AddBotmParticipation(participantID string, botmID int64, startingKC int) error
+	GetBotmParticipation(participantID string, botmID int64) (*BotmParticipationModel, error)
+	CreateBotmParticipation(participantID string, botmID int64, startingKC int) error
+	UpdateBotmParticipation(participantID string, botmID int64, startAmount, currentAmount int) error
 }
 
 func NewParticipantDataSource(db *sql.DB) ParticipantDataSource {
@@ -171,30 +174,52 @@ func (ds *participantDS) GetTrackedAccounts(serverID, discordID string) ([]strin
 }
 
 func (ds *participantDS) AddBotmParticipation(participantID string, botmID int64, startingKC int) error {
-	utils.Debug("Adding BOTM participation for participant %s in competition %d with starting KC %d", participantID, botmID, startingKC)
+	// This method is now deprecated - the repository handles the logic
+	// Keeping for backward compatibility but it just delegates to CreateBotmParticipation
+	return ds.CreateBotmParticipation(participantID, botmID, startingKC)
+}
 
-	result, err := ds.db.Exec(`
-		INSERT OR REPLACE INTO botm_participation (participant_id, botm_id, start_amount, current_amount)
+func (ds *participantDS) GetBotmParticipation(participantID string, botmID int64) (*BotmParticipationModel, error) {
+	var participation BotmParticipationModel
+	err := ds.db.QueryRow(`
+		SELECT participant_id, botm_id, start_amount, current_amount
+		FROM botm_participation 
+		WHERE participant_id = ? AND botm_id = ?`, participantID, botmID).Scan(
+		&participation.ParticipantID, &participation.BotmID,
+		&participation.StartAmount, &participation.CurrentAmount)
+
+	if err == sql.ErrNoRows {
+		return nil, nil
+	} else if err != nil {
+		utils.Error("Failed to get BOTM participation for participant %s in competition %d: %v", participantID, botmID, err)
+		return nil, fmt.Errorf("failed to get participation")
+	}
+
+	return &participation, nil
+}
+
+func (ds *participantDS) CreateBotmParticipation(participantID string, botmID int64, startingKC int) error {
+	_, err := ds.db.Exec(`
+		INSERT INTO botm_participation (participant_id, botm_id, start_amount, current_amount)
 		VALUES (?, ?, ?, ?)`,
 		participantID, botmID, startingKC, startingKC)
 	if err != nil {
-		utils.Error("Failed to add BOTM participation for participant %s in competition %d: %v", participantID, botmID, err)
-		return fmt.Errorf("failed to add BOTM participation")
+		utils.Error("Failed to create BOTM participation for participant %s in competition %d: %v", participantID, botmID, err)
+		return fmt.Errorf("failed to create participation")
 	}
+	return nil
+}
 
-	rowsAffected, err := result.RowsAffected()
+func (ds *participantDS) UpdateBotmParticipation(participantID string, botmID int64, startAmount, currentAmount int) error {
+	_, err := ds.db.Exec(`
+		UPDATE botm_participation 
+		SET start_amount = ?, current_amount = ?
+		WHERE participant_id = ? AND botm_id = ?`,
+		startAmount, currentAmount, participantID, botmID)
 	if err != nil {
-		utils.Error("Failed to get rows affected for BOTM participation for participant %s in competition %d: %v", participantID, botmID, err)
-		return fmt.Errorf("failed to add BOTM participation")
+		utils.Error("Failed to update BOTM participation for participant %s in competition %d: %v", participantID, botmID, err)
+		return fmt.Errorf("failed to update participation")
 	}
-
-	if rowsAffected > 0 {
-		utils.Info("Successfully added BOTM participation for participant %s in competition %d with starting KC %d", participantID, botmID, startingKC)
-	} else {
-		utils.Error("Failed to add BOTM participation for participant %s in competition %d: no rows affected", participantID, botmID)
-		return fmt.Errorf("failed to add BOTM participation")
-	}
-
 	return nil
 }
 

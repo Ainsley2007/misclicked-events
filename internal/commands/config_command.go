@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"misclicked-events/internal/data"
 	"misclicked-events/internal/domain"
-	"misclicked-events/internal/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -39,7 +38,7 @@ func HandleConfigCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	if !utils.IsAdmin(i) {
+	if !IsAdmin(i) {
 		handleCommandError(s, i, fmt.Errorf("you don't have the required permissions to use this command"), "Permission check failed")
 		return
 	}
@@ -89,15 +88,16 @@ func HandleConfigCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	successMessage := "✅ **Configuration saved successfully!**\n\n"
-	successMessage += fmt.Sprintf("**Ranking Channel:** <#%s>\n", rankingChannelID)
-	successMessage += fmt.Sprintf("**BOTM Channel:** <#%s>", hiscoreChannelID)
+	description := "✅ **Configuration saved successfully!**\n\n"
+	description += fmt.Sprintf("**Ranking Channel:** <#%s>\n", rankingChannelID)
+	description += fmt.Sprintf("**BOTM Channel:** <#%s>", hiscoreChannelID)
 
 	if categoryChannelID != "" {
-		successMessage += fmt.Sprintf("\n**Category Channel:** <#%s>", categoryChannelID)
+		description += fmt.Sprintf("\n**Category Channel:** <#%s>", categoryChannelID)
 	}
 
-	successMessage += "\n\nYour competition results will now be displayed in these channels."
+	description += "\n\nYour competition results will now be displayed in these channels."
 
-	utils.EditResponseMessage(s, i, successMessage)
+	embed := createSuccessEmbed("✅ Configuration Saved", description, i)
+	sendEmbedResponse(s, i, embed)
 }

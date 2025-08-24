@@ -307,6 +307,7 @@ func (m *ActivityMapper) ToDomain(model *sqlite.ActivityModel) *domain.ActivityE
 	}
 
 	return &domain.ActivityEntity{
+		ID:           model.ID,
 		Name:         model.Name,
 		Type:         model.Type,
 		HiscoreNames: hiscoreNames,

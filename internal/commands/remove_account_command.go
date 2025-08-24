@@ -3,9 +3,7 @@ package commands
 import (
 	"fmt"
 	"misclicked-events/internal/data"
-	"misclicked-events/internal/utils"
 	"strings"
-	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -43,27 +41,14 @@ func HandleRemoveAccountCommand(s *discordgo.Session, i *discordgo.InteractionCr
 	err = data.ParticipantRepo.RemoveAccount(i.GuildID, i.Member.User.ID, username)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
-			embed := &discordgo.MessageEmbed{
-				Title:       "❌ Account Not Found",
-				Description: "This account is not being tracked.",
-				Color:       0xff0000,
-			}
-			utils.EditResponseEmbed(s, i, embed)
+			handleAccountNotFoundError(s, i, username)
 			return
 		}
 		handleCommandError(s, i, err, "Failed to remove account")
 		return
 	}
 
-	embed := &discordgo.MessageEmbed{
-		Title:       "✅ Account Removed Successfully",
-		Description: fmt.Sprintf("Successfully removed account **%s**\n\nYour account is no longer being tracked for competitions.", username),
-		Color:       0x00ff00,
-		Footer: &discordgo.MessageEmbedFooter{
-			Text: fmt.Sprintf("Requested by %s", i.Member.User.Username),
-		},
-		Timestamp: time.Now().Format(time.RFC3339),
-	}
-
-	utils.EditResponseEmbed(s, i, embed)
+	description := fmt.Sprintf("Successfully removed account **%s**\n\nYour account is no longer being tracked for competitions.", username)
+	embed := createSuccessEmbed("✅ Account Removed Successfully", description, i)
+	sendEmbedResponse(s, i, embed)
 }

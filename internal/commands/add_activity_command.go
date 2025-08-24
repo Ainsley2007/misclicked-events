@@ -3,9 +3,7 @@ package commands
 import (
 	"fmt"
 	"misclicked-events/internal/data"
-	"misclicked-events/internal/utils"
 	"strings"
-	"time"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -89,15 +87,7 @@ func HandleAddActivityCommand(s *discordgo.Session, i *discordgo.InteractionCrea
 		hiscoreNamesText = "\nHiscore name: " + name
 	}
 
-	embed := &discordgo.MessageEmbed{
-		Title:       "✅ Activity Added Successfully",
-		Description: fmt.Sprintf("Successfully added activity **%s** (Type: %s)%s", name, activityType, hiscoreNamesText),
-		Color:       0x00ff00,
-		Footer: &discordgo.MessageEmbedFooter{
-			Text: fmt.Sprintf("Requested by %s", i.Member.User.Username),
-		},
-		Timestamp: time.Now().Format(time.RFC3339),
-	}
-
-	utils.EditResponseEmbed(s, i, embed)
+	description := fmt.Sprintf("Successfully added activity **%s** (Type: %s)%s", name, activityType, hiscoreNamesText)
+	embed := createSuccessEmbed("✅ Activity Added Successfully", description, i)
+	sendEmbedResponse(s, i, embed)
 }
