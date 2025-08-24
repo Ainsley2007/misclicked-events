@@ -53,7 +53,9 @@ func (uc *AddAccountUseCase) Execute(serverID, discordID, accountName string) er
 			return fmt.Errorf("failed to add account")
 		}
 
-		err = uc.participantRepo.AddBotmParticipation(discordID, botm.ID, startingKC)
+		// Create a map with the single account's KC
+		accountStartingKC := map[string]int{accountName: startingKC}
+		err = uc.participantRepo.AddBotmParticipation(discordID, botm.ID, accountStartingKC)
 		if err != nil {
 			return fmt.Errorf("failed to add account")
 		}

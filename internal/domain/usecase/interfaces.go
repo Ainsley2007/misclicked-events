@@ -12,7 +12,7 @@ type CompetitionRepository interface {
 
 type ParticipantRepository interface {
 	GetAllParticipantsWithAccounts(serverID string) ([]sqlite.ParticipantWithAccounts, error)
-	AddBotmParticipation(participantID string, botmID int64, startingKC int) error
+	AddBotmParticipation(participantID string, botmID int64, accountStartingKC map[string]int) error
 }
 
 type ActivityRepository interface {

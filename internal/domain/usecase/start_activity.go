@@ -67,8 +67,8 @@ func (uc *StartActivityUseCase) Execute(serverID, activityName, password string)
 	for _, participant := range participants {
 		fmt.Printf("DEBUG: Processing participant %s with %d accounts\n", participant.DiscordID, len(participant.Accounts))
 
-		// Combine KC from all accounts for this participant
-		totalStartKC := 0
+		// Get KC for each individual account
+		accountStartingKC := make(map[string]int)
 		for _, account := range participant.Accounts {
 			fmt.Printf("DEBUG: Processing account: %s\n", account)
 			if uc.hiscoreRepo == nil {
@@ -80,18 +80,18 @@ func (uc *StartActivityUseCase) Execute(serverID, activityName, password string)
 				continue
 			}
 			fmt.Printf("DEBUG: Got KC %d for account %s\n", startKC, account)
-			totalStartKC += startKC
+			accountStartingKC[account] = startKC
 		}
 
-		fmt.Printf("DEBUG: Total combined KC for participant %s: %d\n", participant.DiscordID, totalStartKC)
+		fmt.Printf("DEBUG: Individual KC for participant %s: %v\n", participant.DiscordID, accountStartingKC)
 
-		// Add participation with the combined KC
-		err = uc.participantRepo.AddBotmParticipation(participant.DiscordID, botm.ID, totalStartKC)
+		// Add participation with individual KC for each account
+		err = uc.participantRepo.AddBotmParticipation(participant.DiscordID, botm.ID, accountStartingKC)
 		if err != nil {
 			fmt.Printf("DEBUG: Failed to add participation for participant %s: %v\n", participant.DiscordID, err)
 			continue
 		}
-		fmt.Printf("DEBUG: Successfully added participation for participant %s with total KC %d\n", participant.DiscordID, totalStartKC)
+		fmt.Printf("DEBUG: Successfully added participation for participant %s with individual KC %v\n", participant.DiscordID, accountStartingKC)
 	}
 
 	return botm, nil

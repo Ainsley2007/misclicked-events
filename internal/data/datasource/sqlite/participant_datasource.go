@@ -3,6 +3,7 @@ package sqlite
 import (
 	"database/sql"
 	"fmt"
+	"misclicked-events/internal/domain"
 	"misclicked-events/internal/utils"
 	"strings"
 )
@@ -17,11 +18,14 @@ type ParticipantDataSource interface {
 	RemoveAccount(serverID, discordID, accountName string) error
 	RenameAccount(serverID, discordID, oldUsername, newUsername string) error
 	GetTrackedAccounts(serverID, discordID string) ([]string, error)
+	GetTrackedAccountsWithIDs(serverID, discordID string) ([]AccountModel, error)
 	GetAllParticipantsWithAccounts(serverID string) ([]ParticipantWithAccounts, error)
-	AddBotmParticipation(participantID string, botmID int64, startingKC int) error
-	GetBotmParticipation(participantID string, botmID int64) (*BotmParticipationModel, error)
-	CreateBotmParticipation(participantID string, botmID int64, startingKC int) error
-	UpdateBotmParticipation(participantID string, botmID int64, startAmount, currentAmount int) error
+	GetParticipantWithAccountKC(participantID string, botmID int64) (*domain.ParticipantWithAccountKC, error)
+	GetAccountID(participantID, username string) (int64, error) // Helper method for internal use
+	GetBotmParticipation(accountID int64, botmID int64) (*BotmParticipationModel, error)
+	CreateBotmParticipation(accountID int64, botmID int64, startingKC int) error
+	UpdateBotmParticipation(accountID int64, botmID int64, startAmount, currentAmount int) error
+	GetBotmParticipationByParticipant(participantID string, botmID int64) ([]*BotmParticipationModel, error)
 }
 
 func NewParticipantDataSource(db *sql.DB) ParticipantDataSource {
@@ -173,54 +177,144 @@ func (ds *participantDS) GetTrackedAccounts(serverID, discordID string) ([]strin
 	return accounts, nil
 }
 
-func (ds *participantDS) AddBotmParticipation(participantID string, botmID int64, startingKC int) error {
-	// This method is now deprecated - the repository handles the logic
-	// Keeping for backward compatibility but it just delegates to CreateBotmParticipation
-	return ds.CreateBotmParticipation(participantID, botmID, startingKC)
+func (ds *participantDS) GetTrackedAccountsWithIDs(serverID, discordID string) ([]AccountModel, error) {
+	utils.Debug("Getting tracked accounts with IDs for participant %s in server %s", discordID, serverID)
+
+	rows, err := ds.db.Query(`
+		SELECT id, username, failed_fetch_count 
+		FROM account 
+		WHERE participant_id = ? 
+		ORDER BY LOWER(username)`, discordID)
+	if err != nil {
+		utils.Error("Failed to get tracked accounts with IDs for participant %s in server %s: %v", discordID, serverID, err)
+		return nil, fmt.Errorf("failed to get tracked accounts with IDs")
+	}
+	defer rows.Close()
+
+	var accounts []AccountModel
+	for rows.Next() {
+		var account AccountModel
+		if err := rows.Scan(&account.ID, &account.Username, &account.FailedFetchCount); err != nil {
+			utils.Error("Failed to scan account for participant %s in server %s: %v", discordID, serverID, err)
+			continue
+		}
+		account.ParticipantID = discordID
+		accounts = append(accounts, account)
+	}
+
+	if err := rows.Err(); err != nil {
+		utils.Error("Error iterating over tracked accounts with IDs for participant %s in server %s: %v", discordID, serverID, err)
+		return nil, fmt.Errorf("failed to get tracked accounts with IDs")
+	}
+
+	utils.Debug("Found %d tracked accounts with IDs for participant %s in server %s", len(accounts), discordID, serverID)
+	return accounts, nil
 }
 
-func (ds *participantDS) GetBotmParticipation(participantID string, botmID int64) (*BotmParticipationModel, error) {
+func (ds *participantDS) GetAccountID(participantID, username string) (int64, error) {
+	utils.Debug("Getting account ID for participant %s with username %s", participantID, username)
+
+	var accountID int64
+	err := ds.db.QueryRow(`
+		SELECT id 
+		FROM account 
+		WHERE participant_id = ? AND LOWER(username) = LOWER(?)`, participantID, username).Scan(&accountID)
+
+	if err == sql.ErrNoRows {
+		utils.Error("Account %s not found for participant %s", username, participantID)
+		return 0, fmt.Errorf("account not found")
+	} else if err != nil {
+		utils.Error("Failed to get account ID for participant %s with username %s: %v", participantID, username, err)
+		return 0, fmt.Errorf("failed to get account ID")
+	}
+
+	utils.Debug("Found account ID %d for participant %s with username %s", accountID, participantID, username)
+	return accountID, nil
+}
+
+func (ds *participantDS) GetBotmParticipation(accountID int64, botmID int64) (*BotmParticipationModel, error) {
 	var participation BotmParticipationModel
 	err := ds.db.QueryRow(`
-		SELECT participant_id, botm_id, start_amount, current_amount
+		SELECT account_id, botm_id, start_amount, current_amount
 		FROM botm_participation 
-		WHERE participant_id = ? AND botm_id = ?`, participantID, botmID).Scan(
-		&participation.ParticipantID, &participation.BotmID,
+		WHERE account_id = ? AND botm_id = ?`, accountID, botmID).Scan(
+		&participation.AccountID, &participation.BotmID,
 		&participation.StartAmount, &participation.CurrentAmount)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
-		utils.Error("Failed to get BOTM participation for participant %s in competition %d: %v", participantID, botmID, err)
+		utils.Error("Failed to get BOTM participation for account %d in competition %d: %v", accountID, botmID, err)
 		return nil, fmt.Errorf("failed to get participation")
 	}
 
 	return &participation, nil
 }
 
-func (ds *participantDS) CreateBotmParticipation(participantID string, botmID int64, startingKC int) error {
+func (ds *participantDS) CreateBotmParticipation(accountID int64, botmID int64, startingKC int) error {
 	_, err := ds.db.Exec(`
-		INSERT INTO botm_participation (participant_id, botm_id, start_amount, current_amount)
+		INSERT INTO botm_participation (account_id, botm_id, start_amount, current_amount)
 		VALUES (?, ?, ?, ?)`,
-		participantID, botmID, startingKC, startingKC)
+		accountID, botmID, startingKC, startingKC)
 	if err != nil {
-		utils.Error("Failed to create BOTM participation for participant %s in competition %d: %v", participantID, botmID, err)
+		utils.Error("Failed to create BOTM participation for account %d in competition %d: %v", accountID, botmID, err)
 		return fmt.Errorf("failed to create participation")
 	}
 	return nil
 }
 
-func (ds *participantDS) UpdateBotmParticipation(participantID string, botmID int64, startAmount, currentAmount int) error {
+func (ds *participantDS) UpdateBotmParticipation(accountID int64, botmID int64, startAmount, currentAmount int) error {
 	_, err := ds.db.Exec(`
 		UPDATE botm_participation 
 		SET start_amount = ?, current_amount = ?
-		WHERE participant_id = ? AND botm_id = ?`,
-		startAmount, currentAmount, participantID, botmID)
+		WHERE account_id = ? AND botm_id = ?`,
+		startAmount, currentAmount, accountID, botmID)
 	if err != nil {
-		utils.Error("Failed to update BOTM participation for participant %s in competition %d: %v", participantID, botmID, err)
+		utils.Error("Failed to update BOTM participation for account %d in competition %d: %v", accountID, botmID, err)
 		return fmt.Errorf("failed to update participation")
 	}
 	return nil
+}
+
+func (ds *participantDS) GetParticipantWithAccountKC(participantID string, botmID int64) (*domain.ParticipantWithAccountKC, error) {
+	utils.Debug("Getting participant %s with account KC for BOTM %d", participantID, botmID)
+
+	// Single query to get all accounts with their KC for this participant
+	rows, err := ds.db.Query(`
+		SELECT a.id, a.username, 
+		       COALESCE(bp.current_amount - bp.start_amount, 0) as kc_gained
+		FROM account a
+		LEFT JOIN botm_participation bp ON a.id = bp.account_id AND bp.botm_id = ?
+		WHERE a.participant_id = ?
+		ORDER BY LOWER(a.username)`, botmID, participantID)
+	if err != nil {
+		utils.Error("Failed to get participant with account KC for participant %s in BOTM %d: %v", participantID, botmID, err)
+		return nil, fmt.Errorf("failed to get participant with account KC")
+	}
+	defer rows.Close()
+
+	var accounts []domain.AccountWithKC
+	for rows.Next() {
+		var account domain.AccountWithKC
+		if err := rows.Scan(&account.ID, &account.Username, &account.KCGained); err != nil {
+			utils.Error("Failed to scan account KC data for participant %s in BOTM %d: %v", participantID, botmID, err)
+			return nil, fmt.Errorf("failed to get participant with account KC")
+		}
+		accounts = append(accounts, account)
+	}
+
+	if err := rows.Err(); err != nil {
+		utils.Error("Error iterating over account KC data for participant %s in BOTM %d: %v", participantID, botmID, err)
+		return nil, fmt.Errorf("failed to get participant with account KC")
+	}
+
+	participant := &domain.ParticipantWithAccountKC{
+		DiscordID: participantID,
+		Accounts:  accounts,
+	}
+
+	utils.Debug("Found %d accounts with KC for participant %s in BOTM %d", len(accounts), participantID, botmID)
+	return participant, nil
 }
 
 func (ds *participantDS) GetAllParticipantsWithAccounts(serverID string) ([]ParticipantWithAccounts, error) {
@@ -263,4 +357,38 @@ func (ds *participantDS) GetAllParticipantsWithAccounts(serverID string) ([]Part
 
 	utils.Debug("Found %d participants with accounts for server %s", len(participants), serverID)
 	return participants, nil
+}
+
+func (ds *participantDS) GetBotmParticipationByParticipant(participantID string, botmID int64) ([]*BotmParticipationModel, error) {
+	utils.Debug("Getting BOTM participation for participant %s in competition %d", participantID, botmID)
+
+	rows, err := ds.db.Query(`
+		SELECT bp.account_id, bp.botm_id, bp.start_amount, bp.current_amount
+		FROM botm_participation bp
+		JOIN account a ON bp.account_id = a.id
+		WHERE a.participant_id = ? AND bp.botm_id = ?`, participantID, botmID)
+	if err != nil {
+		utils.Error("Failed to get BOTM participation for participant %s in competition %d: %v", participantID, botmID, err)
+		return nil, fmt.Errorf("failed to get participation")
+	}
+	defer rows.Close()
+
+	var participations []*BotmParticipationModel
+	for rows.Next() {
+		var participation BotmParticipationModel
+		if err := rows.Scan(&participation.AccountID, &participation.BotmID,
+			&participation.StartAmount, &participation.CurrentAmount); err != nil {
+			utils.Error("Failed to scan BOTM participation for participant %s in competition %d: %v", participantID, botmID, err)
+			return nil, fmt.Errorf("failed to get participation")
+		}
+		participations = append(participations, &participation)
+	}
+
+	if err := rows.Err(); err != nil {
+		utils.Error("Error iterating over BOTM participation for participant %s in competition %d: %v", participantID, botmID, err)
+		return nil, fmt.Errorf("failed to get participation")
+	}
+
+	utils.Debug("Found %d BOTM participations for participant %s in competition %d", len(participations), participantID, botmID)
+	return participations, nil
 }

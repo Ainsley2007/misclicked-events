@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"misclicked-events/internal/data/datasource/sqlite"
 	"misclicked-events/internal/data/mappers"
+	"misclicked-events/internal/domain"
 	"misclicked-events/internal/utils"
 	"strings"
 )
@@ -137,7 +138,7 @@ func (r *ParticipantRepository) GetTrackedAccounts(serverID, discordID string) (
 	return accounts, nil
 }
 
-func (r *ParticipantRepository) AddBotmParticipation(participantID string, botmID int64, startingKC int) error {
+func (r *ParticipantRepository) AddBotmParticipation(participantID string, botmID int64, accountStartingKC map[string]int) error {
 	if participantID == "" {
 		utils.Error("AddBotmParticipation called with empty participant ID")
 		return fmt.Errorf("participant ID cannot be empty")
@@ -148,37 +149,53 @@ func (r *ParticipantRepository) AddBotmParticipation(participantID string, botmI
 		return fmt.Errorf("BOTM ID must be positive")
 	}
 
-	utils.Debug("Adding BOTM participation for participant %s in BOTM %d with starting KC %d", participantID, botmID, startingKC)
+	utils.Debug("Adding BOTM participation for participant %s in BOTM %d with %d accounts", participantID, botmID, len(accountStartingKC))
 
-	// Check if participation already exists
-	existingParticipation, err := r.ds.GetBotmParticipation(participantID, botmID)
+	// Get all accounts with IDs for this participant
+	accounts, err := r.ds.GetTrackedAccountsWithIDs("", participantID) // serverID not needed for this query
 	if err != nil {
-		utils.Error("Failed to check existing BOTM participation for participant %s in BOTM %d: %v", participantID, botmID, err)
-		return fmt.Errorf("failed to check existing participation")
+		utils.Error("Failed to get tracked accounts with IDs for participant %s: %v", participantID, err)
+		return fmt.Errorf("failed to get tracked accounts with IDs")
 	}
 
-	if existingParticipation == nil {
-		// No existing participation, create new record
-		err = r.ds.CreateBotmParticipation(participantID, botmID, startingKC)
-		if err != nil {
-			utils.Error("Failed to create BOTM participation for participant %s in BOTM %d: %v", participantID, botmID, err)
-			return fmt.Errorf("failed to create participation")
-		}
-		utils.Info("Successfully created new BOTM participation for participant %s in BOTM %d with starting KC %d", participantID, botmID, startingKC)
-	} else {
-		// Participation exists - this means the competition is already running
-		// Both start_amount and current_amount should increase by the new account's KC
-		// This maintains fair competition while preserving progress
-		newStartAmount := existingParticipation.StartAmount + startingKC
-		newCurrentAmount := existingParticipation.CurrentAmount + startingKC
+	if len(accounts) == 0 {
+		utils.Error("Participant %s has no tracked accounts", participantID)
+		return fmt.Errorf("participant has no tracked accounts")
+	}
 
-		err = r.ds.UpdateBotmParticipation(participantID, botmID, newStartAmount, newCurrentAmount)
+	// For each account, create participation
+	for _, account := range accounts {
+		// We already have the account ID from the efficient query
+		accountID := account.ID
+		accountName := account.Username
+
+		// Check if participation already exists for this account
+		existingParticipation, err := r.ds.GetBotmParticipation(accountID, botmID)
 		if err != nil {
-			utils.Error("Failed to update BOTM participation for participant %s in BOTM %d: %v", participantID, botmID, err)
-			return fmt.Errorf("failed to update participation")
+			utils.Error("Failed to check existing BOTM participation for account %s in BOTM %d: %v", accountName, botmID, err)
+			continue
 		}
-		utils.Info("Successfully updated BOTM participation for participant %s in BOTM %d: added %d KC (start: %d->%d, current: %d->%d)",
-			participantID, botmID, startingKC, existingParticipation.StartAmount, newStartAmount, existingParticipation.CurrentAmount, newCurrentAmount)
+
+		if existingParticipation == nil {
+			// Get the starting KC for this specific account
+			accountStartKC, exists := accountStartingKC[accountName]
+			if !exists {
+				utils.Error("No starting KC provided for account %s", accountName)
+				continue
+			}
+
+			// No existing participation, create new record with this account's starting KC
+			err = r.ds.CreateBotmParticipation(accountID, botmID, accountStartKC)
+			if err != nil {
+				utils.Error("Failed to create BOTM participation for account %s in BOTM %d: %v", accountName, botmID, err)
+				continue
+			}
+			utils.Info("Successfully created new BOTM participation for account %s in BOTM %d with starting KC %d", accountName, botmID, accountStartKC)
+		} else {
+			// Participation already exists for this account - skip it
+			// Each account should only be added once to a competition
+			utils.Debug("Account %s already participating in BOTM %d, skipping", accountName, botmID)
+		}
 	}
 
 	return nil
@@ -199,4 +216,28 @@ func (r *ParticipantRepository) GetAllParticipantsWithAccounts(serverID string) 
 
 	utils.Info("Successfully retrieved %d participants with accounts for server %s", len(participants), serverID)
 	return participants, nil
+}
+
+func (r *ParticipantRepository) GetParticipantWithAccountKC(participantID string, botmID int64) (*domain.ParticipantWithAccountKC, error) {
+	if participantID == "" {
+		utils.Error("GetParticipantWithAccountKC called with empty participant ID")
+		return nil, fmt.Errorf("participant ID cannot be empty")
+	}
+
+	if botmID <= 0 {
+		utils.Error("GetParticipantWithAccountKC called with invalid BOTM ID: %d", botmID)
+		return nil, fmt.Errorf("BOTM ID must be positive")
+	}
+
+	utils.Debug("Getting participant %s with account KC for BOTM %d", participantID, botmID)
+
+	// Single efficient query to get all accounts with KC
+	participant, err := r.ds.GetParticipantWithAccountKC(participantID, botmID)
+	if err != nil {
+		utils.Error("Failed to get participant with account KC for participant %s in BOTM %d: %v", participantID, botmID, err)
+		return nil, fmt.Errorf("failed to get participant with account KC")
+	}
+
+	utils.Info("Successfully retrieved participant %s with %d accounts and KC data for BOTM %d", participantID, len(participant.Accounts), botmID)
+	return participant, nil
 }

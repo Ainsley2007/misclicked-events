@@ -3,6 +3,8 @@ package commands
 import (
 	"fmt"
 	"misclicked-events/internal/data"
+	"misclicked-events/internal/domain"
+	"misclicked-events/internal/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -37,6 +39,7 @@ func HandleTrackedAccountsCommand(s *discordgo.Session, i *discordgo.Interaction
 	}
 
 	var currentCompetition string
+	var currentBotm *domain.BotmWithActivity
 	if hasActiveBotm {
 		botm, err := data.CompetitionRepo.GetBotm(i.GuildID)
 		if err != nil {
@@ -45,6 +48,7 @@ func HandleTrackedAccountsCommand(s *discordgo.Session, i *discordgo.Interaction
 		}
 		if botm != nil && botm.Activity != nil {
 			currentCompetition = botm.Activity.Name
+			currentBotm = botm
 		}
 	}
 
@@ -55,14 +59,28 @@ func HandleTrackedAccountsCommand(s *discordgo.Session, i *discordgo.Interaction
 		description = fmt.Sprintf("**Event:** %s\n\n", currentCompetition)
 	}
 
-	for _, account := range accounts {
-		if len(currentCompetition) > 0 {
-			description += fmt.Sprintf(
-				"🔹 **%s**\n   └ **KC**: `%d`\n\n",
-				account,
-				0, // Placeholder KC value for now
-			)
+	if len(currentCompetition) > 0 {
+		// Get all accounts with KC in one efficient call
+		participant, err := data.ParticipantRepo.GetParticipantWithAccountKC(i.Member.User.ID, currentBotm.ID)
+		if err != nil {
+			utils.Error("Failed to get participant with account KC: %v", err)
+			// Fallback to showing accounts without KC
+			for _, account := range accounts {
+				description += fmt.Sprintf("🔹 **%s**\n   └ **KC**: `Error`\n\n", account)
+			}
 		} else {
+			// Use the KC data from the efficient query
+			for _, account := range participant.Accounts {
+				description += fmt.Sprintf(
+					"🔹 **%s**\n   └ **KC**: `%d`\n\n",
+					account.Username,
+					account.KCGained,
+				)
+			}
+		}
+	} else {
+		// No active competition, just show account names
+		for _, account := range accounts {
 			description += fmt.Sprintf("🔹 **%s**\n", account)
 		}
 	}

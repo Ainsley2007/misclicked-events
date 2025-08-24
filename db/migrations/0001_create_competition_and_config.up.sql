@@ -100,23 +100,23 @@ CREATE INDEX IF NOT EXISTS idx_account_participant_id ON account(participant_id)
 CREATE UNIQUE INDEX IF NOT EXISTS idx_account_participant_username_lower ON account(participant_id, LOWER(username));
 
 CREATE TABLE IF NOT EXISTS botm_participation(
-    participant_id text NOT NULL REFERENCES participant(discord_id) ON DELETE CASCADE,
+    account_id integer NOT NULL REFERENCES account(id) ON DELETE CASCADE,
     botm_id integer NOT NULL REFERENCES botm(id) ON DELETE CASCADE,
     start_amount integer NOT NULL,
     current_amount integer NOT NULL,
-    PRIMARY KEY (participant_id, botm_id)
+    PRIMARY KEY (account_id, botm_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_botm_part_botm ON botm_participation(botm_id);
-CREATE INDEX IF NOT EXISTS idx_botm_part_participant ON botm_participation(participant_id);
+CREATE INDEX IF NOT EXISTS idx_botm_part_account ON botm_participation(account_id);
 
 CREATE TABLE IF NOT EXISTS kots_participation(
-    participant_id text NOT NULL REFERENCES participant(discord_id) ON DELETE CASCADE,
+    account_id integer NOT NULL REFERENCES account(id) ON DELETE CASCADE,
     kots_id integer NOT NULL REFERENCES kots(id) ON DELETE CASCADE,
     start_amount integer NOT NULL,
     current_amount integer NOT NULL,
-    PRIMARY KEY (participant_id, kots_id)
+    PRIMARY KEY (account_id, kots_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_kots_part_kots ON kots_participation(kots_id);
-CREATE INDEX IF NOT EXISTS idx_kots_part_participant ON kots_participation(participant_id);
+CREATE INDEX IF NOT EXISTS idx_kots_part_account ON kots_participation(account_id);

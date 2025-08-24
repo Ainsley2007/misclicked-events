@@ -59,14 +59,14 @@ type AccountModel struct {
 }
 
 type BotmParticipationModel struct {
-	ParticipantID string
+	AccountID     int64
 	BotmID        int64
 	StartAmount   int
 	CurrentAmount int
 }
 
 type KotsParticipationModel struct {
-	ParticipantID string
+	AccountID     int64
 	KotsID        int64
 	StartAmount   int
 	CurrentAmount int

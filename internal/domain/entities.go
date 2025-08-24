@@ -78,20 +78,31 @@ type Account struct {
 	KotsParticipation *KotsParticipation
 }
 
+type ParticipantWithAccountKC struct {
+	DiscordID string
+	Accounts  []AccountWithKC
+}
+
+type AccountWithKC struct {
+	ID       int64
+	Username string
+	KCGained int
+}
+
 type OSRSAccount struct {
 	ID   int64
 	Name string
 }
 
 type BotmParticipation struct {
-	ParticipantID string
+	AccountID     int64
 	BotmID        int64
 	StartAmount   int
 	CurrentAmount int
 }
 
 type KotsParticipation struct {
-	ParticipantID string
+	AccountID     int64
 	KotsID        int64
 	StartAmount   int
 	CurrentAmount int

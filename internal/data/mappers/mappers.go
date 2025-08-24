@@ -213,7 +213,7 @@ func (m *AccountMapper) ToDomain(participantModel *sqlite.ParticipantModel, acco
 	if len(botmParticipationModels) > 0 {
 		latestBotm := botmParticipationModels[0]
 		botmParticipation = &domain.BotmParticipation{
-			ParticipantID: latestBotm.ParticipantID,
+			AccountID:     latestBotm.AccountID,
 			BotmID:        latestBotm.BotmID,
 			StartAmount:   latestBotm.StartAmount,
 			CurrentAmount: latestBotm.CurrentAmount,
@@ -224,7 +224,7 @@ func (m *AccountMapper) ToDomain(participantModel *sqlite.ParticipantModel, acco
 	if len(kotsParticipationModels) > 0 {
 		latestKots := kotsParticipationModels[0]
 		kotsParticipation = &domain.KotsParticipation{
-			ParticipantID: latestKots.ParticipantID,
+			AccountID:     latestKots.AccountID,
 			KotsID:        latestKots.KotsID,
 			StartAmount:   latestKots.StartAmount,
 			CurrentAmount: latestKots.CurrentAmount,
@@ -267,7 +267,7 @@ func (m *AccountMapper) ToModels(entity *domain.Account, serverID string) (*sqli
 	if entity.BotmParticipation != nil {
 		botmParticipationModels = []*sqlite.BotmParticipationModel{
 			{
-				ParticipantID: entity.BotmParticipation.ParticipantID,
+				AccountID:     entity.BotmParticipation.AccountID,
 				BotmID:        entity.BotmParticipation.BotmID,
 				StartAmount:   entity.BotmParticipation.StartAmount,
 				CurrentAmount: entity.BotmParticipation.CurrentAmount,
@@ -279,7 +279,7 @@ func (m *AccountMapper) ToModels(entity *domain.Account, serverID string) (*sqli
 	if entity.KotsParticipation != nil {
 		kotsParticipationModels = []*sqlite.KotsParticipationModel{
 			{
-				ParticipantID: entity.KotsParticipation.ParticipantID,
+				AccountID:     entity.KotsParticipation.AccountID,
 				KotsID:        entity.KotsParticipation.KotsID,
 				StartAmount:   entity.KotsParticipation.StartAmount,
 				CurrentAmount: entity.KotsParticipation.CurrentAmount,

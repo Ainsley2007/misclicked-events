@@ -1,10 +1,10 @@
-DROP INDEX IF EXISTS idx_kots_part_participant;
+DROP INDEX IF EXISTS idx_kots_part_account;
 
 DROP INDEX IF EXISTS idx_kots_part_kots;
 
 DROP TABLE IF EXISTS kots_participation;
 
-DROP INDEX IF EXISTS idx_botm_part_participant;
+DROP INDEX IF EXISTS idx_botm_part_account;
 
 DROP INDEX IF EXISTS idx_botm_part_botm;
 

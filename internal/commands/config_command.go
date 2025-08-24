@@ -88,8 +88,7 @@ func HandleConfigCommand(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		return
 	}
 
-	description := "✅ **Configuration saved successfully!**\n\n"
-	description += fmt.Sprintf("**Ranking Channel:** <#%s>\n", rankingChannelID)
+	description := fmt.Sprintf("**Ranking Channel:** <#%s>\n", rankingChannelID)
 	description += fmt.Sprintf("**BOTM Channel:** <#%s>", hiscoreChannelID)
 
 	if categoryChannelID != "" {
