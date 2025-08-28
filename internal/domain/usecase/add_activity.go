@@ -16,7 +16,7 @@ func NewAddActivityUseCase(activityRepo repository.ActivityRepository) *AddActiv
 	}
 }
 
-func (uc *AddActivityUseCase) Execute(name, activityType string, hiscoreNames []string) error {
+func (uc *AddActivityUseCase) Execute(name, activityType string, hiscoreNames []string, threshold int) error {
 	utils.Debug("AddActivityUseCase: Starting execution for activity %s of type %s", name, activityType)
 
 	if len(hiscoreNames) == 0 {
@@ -28,6 +28,7 @@ func (uc *AddActivityUseCase) Execute(name, activityType string, hiscoreNames []
 		Name:         name,
 		Type:         activityType,
 		HiscoreNames: hiscoreNames,
+		Threshold:    threshold,
 	}
 
 	err := uc.activityRepo.AddActivity(activity)

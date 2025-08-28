@@ -67,6 +67,7 @@ type ActivityEntity struct {
 	Name         string
 	Type         string
 	HiscoreNames []string
+	Threshold    int
 }
 
 type Account struct {

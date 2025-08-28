@@ -23,6 +23,7 @@ var (
 	AddActivityUseCase    *usecase.AddActivityUseCase
 	RemoveActivityUseCase *usecase.RemoveActivityUseCase
 	StartActivityUseCase  *usecase.StartActivityUseCase
+	UpdateHiscoresUseCase *usecase.UpdateHiscoresUseCase
 )
 
 func Init(dbPath string) error {
@@ -56,6 +57,7 @@ func Init(dbPath string) error {
 	AddActivityUseCase = usecase.NewAddActivityUseCase(ActivityRepo)
 	RemoveActivityUseCase = usecase.NewRemoveActivityUseCase(ActivityRepo)
 	StartActivityUseCase = usecase.NewStartActivityUseCase(CompetitionRepo, ParticipantRepo, ActivityRepo, HiscoreRepo)
+	UpdateHiscoresUseCase = usecase.NewUpdateHiscoresUseCase(CompetitionRepo, ParticipantRepo, ConfigRepo, HiscoreRepo)
 
 	return nil
 }

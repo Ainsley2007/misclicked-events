@@ -69,7 +69,7 @@ func (ds *botmDS) GetCurrentBotm(serverID string) (*BotmModel, error) {
 func (ds *botmDS) GetCurrentBotmWithActivity(serverID string) (*BotmWithActivityModel, error) {
 	row := ds.db.QueryRow(`
         SELECT b.id, b.server_id, b.activity_id, b.password, b.status,
-               a.id, a.name, a.type, a.hiscore_names
+               a.id, a.name, a.type, a.hiscore_names, a.threshold
         FROM botm b
         JOIN activity a ON b.activity_id = a.id
         WHERE b.server_id = ? AND b.status = 'active'
@@ -82,7 +82,7 @@ func (ds *botmDS) GetCurrentBotmWithActivity(serverID string) (*BotmWithActivity
 	var a ActivityModel
 	if err := row.Scan(
 		&b.ID, &b.ServerID, &b.ActivityID, &b.Password, &b.Status,
-		&a.ID, &a.Name, &a.Type, &a.HiscoreNames,
+		&a.ID, &a.Name, &a.Type, &a.HiscoreNames, &a.Threshold,
 	); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, nil

@@ -40,6 +40,12 @@ var AddActivityCommand = &discordgo.ApplicationCommand{
 			Description: "Comma-separated list of hiscore names (optional - will use activity name if not provided)",
 			Required:    false,
 		},
+		{
+			Type:        discordgo.ApplicationCommandOptionInteger,
+			Name:        "threshold",
+			Description: "The threshold KC required for this activity (default: 5)",
+			Required:    false,
+		},
 	},
 }
 
@@ -74,7 +80,13 @@ func HandleAddActivityCommand(s *discordgo.Session, i *discordgo.InteractionCrea
 		}
 	}
 
-	err = data.AddActivityUseCase.Execute(name, activityType, hiscoreNames)
+	threshold := 5
+	thresholdOption, err := getIntegerOption(i, 3)
+	if err == nil {
+		threshold = thresholdOption
+	}
+
+	err = data.AddActivityUseCase.Execute(name, activityType, hiscoreNames, threshold)
 	if err != nil {
 		handleCommandError(s, i, err, "Failed to add activity")
 		return

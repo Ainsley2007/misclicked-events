@@ -10,6 +10,7 @@ import (
 	"misclicked-events/internal/config"
 	"misclicked-events/internal/data"
 	"misclicked-events/internal/handlers"
+	"misclicked-events/internal/services"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -40,12 +41,16 @@ func main() {
 
 	commands.RegisterCommands(dg, true)
 
-	// commands.UpdateBOTMHiscores(dg)
+	// Initialize and start the hiscore service
+	hiscoreService := services.NewHiscoreService(dg, data.UpdateHiscoresUseCase)
+	hiscoreService.Start()
 
 	fmt.Println("Bot is now running. Press CTRL+C to exit.")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM)
 	<-sc
 
+	// Gracefully stop the hiscore service
+	hiscoreService.Stop()
 	dg.Close()
 }

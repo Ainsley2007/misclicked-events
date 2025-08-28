@@ -77,4 +77,5 @@ type ActivityModel struct {
 	Name         string
 	Type         string
 	HiscoreNames string
+	Threshold    int
 }

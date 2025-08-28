@@ -112,6 +112,7 @@ func (m *BotmMapper) ToDomainActivity(model *sqlite.ActivityModel) *domain.Activ
 		Name:         model.Name,
 		Type:         model.Type,
 		HiscoreNames: hiscoreNames,
+		Threshold:    model.Threshold,
 	}
 }
 
@@ -311,6 +312,7 @@ func (m *ActivityMapper) ToDomain(model *sqlite.ActivityModel) *domain.ActivityE
 		Name:         model.Name,
 		Type:         model.Type,
 		HiscoreNames: hiscoreNames,
+		Threshold:    model.Threshold,
 	}
 }
 
@@ -323,5 +325,6 @@ func (m *ActivityMapper) ToModel(entity *domain.ActivityEntity) *sqlite.Activity
 		Name:         entity.Name,
 		Type:         entity.Type,
 		HiscoreNames: strings.Join(entity.HiscoreNames, ","),
+		Threshold:    entity.Threshold,
 	}
 }
