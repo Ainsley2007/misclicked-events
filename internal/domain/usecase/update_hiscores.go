@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"misclicked-events/internal/data/datasource/sqlite"
 	"misclicked-events/internal/domain"
+	"misclicked-events/internal/utils"
 	"time"
 )
 
@@ -61,7 +62,7 @@ func (uc *UpdateHiscoresUseCase) Execute(serverID string) (*UpdateHiscoresResult
 		err := uc.updateParticipantKC(participant, currentBotm)
 		if err != nil {
 			// Log error but continue with other participants
-			fmt.Printf("Failed to update KC for participant %s: %v\n", participant.DiscordID, err)
+			utils.Error("Failed to update KC for participant %s: %v", participant.DiscordID, err)
 			continue
 		}
 	}
@@ -117,7 +118,7 @@ func (uc *UpdateHiscoresUseCase) updateParticipantKC(participant sqlite.Particip
 		startKC, err := uc.hiscoreRepo.GetBossKCCombined(account, currentBotm.Activity.HiscoreNames)
 		if err != nil {
 			// Log error but continue with other accounts
-			fmt.Printf("Failed to get KC for account %s: %v\n", account, err)
+			utils.Error("Failed to get KC for account %s: %v", account, err)
 			continue
 		}
 		accountStartingKC[account] = startKC

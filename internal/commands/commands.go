@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"misclicked-events/internal/utils"
 
 	"github.com/bwmarrin/discordgo"
@@ -27,7 +26,7 @@ func RegisterCommands(s *discordgo.Session, force bool) {
 	}
 
 	if !force && commandsAreEqual(existingCommands, commands) {
-		fmt.Println("Commands are already up-to-date. Skipping registration.")
+		utils.Info("Commands are already up-to-date. Skipping registration.")
 		return
 	}
 
@@ -35,7 +34,7 @@ func RegisterCommands(s *discordgo.Session, force bool) {
 	if err != nil {
 		utils.Error("Error overwriting commands: %v", err)
 	} else {
-		fmt.Println("Commands registered successfully.")
+		utils.Info("Commands registered successfully.")
 	}
 }
 

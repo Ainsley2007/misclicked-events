@@ -60,16 +60,6 @@ func (hs *HiscoreService) Stop() {
 	<-hs.done // Wait for the goroutine to finish
 }
 
-// IsRunning returns true if the service is currently running
-func (hs *HiscoreService) IsRunning() bool {
-	select {
-	case <-hs.done:
-		return false
-	default:
-		return true
-	}
-}
-
 // updateAllGuilds updates all guilds with ongoing events
 func (hs *HiscoreService) updateAllGuilds() {
 	for _, guild := range hs.session.State.Guilds {

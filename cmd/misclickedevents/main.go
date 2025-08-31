@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -11,20 +10,21 @@ import (
 	"misclicked-events/internal/data"
 	"misclicked-events/internal/handlers"
 	"misclicked-events/internal/services"
+	"misclicked-events/internal/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
 
 func main() {
 	if err := data.Init("./data.db"); err != nil {
-		fmt.Println("could not init data layer:", err)
+		utils.Error("could not init data layer: %v", err)
 		return
 	}
 
 	token := config.GetToken()
 	dg, err := discordgo.New("Bot " + token)
 	if err != nil {
-		fmt.Println("Error creating Discord session: ", err)
+		utils.Error("error creating Discord session: %v", err)
 		return
 	}
 
@@ -35,7 +35,7 @@ func main() {
 
 	err = dg.Open()
 	if err != nil {
-		fmt.Println("Error opening connection: ", err)
+		utils.Error("error opening connection: %v", err)
 		return
 	}
 
@@ -45,7 +45,7 @@ func main() {
 	hiscoreService := services.NewHiscoreService(dg, data.UpdateHiscoresUseCase)
 	hiscoreService.Start()
 
-	fmt.Println("Bot is now running. Press CTRL+C to exit.")
+	utils.Info("Bot is now running. Press CTRL+C to exit.")
 	sc := make(chan os.Signal, 1)
 	signal.Notify(sc, syscall.SIGINT, syscall.SIGTERM)
 	<-sc

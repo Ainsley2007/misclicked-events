@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"misclicked-events/internal/data"
+	"misclicked-events/internal/utils"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -74,7 +75,7 @@ func HandleStartActivityCommand(s *discordgo.Session, i *discordgo.InteractionCr
 func updateCategoryChannelName(s *discordgo.Session, guildID, currentBoss string) {
 	config, err := data.ConfigRepo.FetchConfig(guildID)
 	if err != nil {
-		fmt.Println("error fetching bot configuration: %w", err)
+		utils.Error("error fetching bot configuration: %v", err)
 		return
 	}
 

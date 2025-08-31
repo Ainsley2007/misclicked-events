@@ -92,8 +92,6 @@ func HandleAccountAutocomplete(s *discordgo.Session, i *discordgo.InteractionCre
 }
 
 func HandleActivityAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	utils.Debug("HandleActivityAutocomplete: Starting autocomplete for remove-activity")
-
 	if data.ActivityRepo == nil {
 		utils.Error("ActivityRepo is nil")
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -116,8 +114,6 @@ func HandleActivityAutocomplete(s *discordgo.Session, i *discordgo.InteractionCr
 		})
 		return
 	}
-
-	utils.Debug("HandleActivityAutocomplete: Retrieved %d activities", len(activities))
 
 	focusedOption := i.ApplicationCommandData().Options[0]
 	userInput := strings.ToLower(focusedOption.StringValue())
@@ -142,8 +138,6 @@ func HandleActivityAutocomplete(s *discordgo.Session, i *discordgo.InteractionCr
 		}
 	}
 
-	utils.Debug("HandleActivityAutocomplete: Sending %d filtered choices (max 25)", len(choices))
-
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionApplicationCommandAutocompleteResult,
 		Data: &discordgo.InteractionResponseData{
@@ -153,8 +147,6 @@ func HandleActivityAutocomplete(s *discordgo.Session, i *discordgo.InteractionCr
 }
 
 func HandleStartActivityAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	utils.Debug("HandleStartActivityAutocomplete: Starting autocomplete for start-activity")
-
 	if data.ActivityRepo == nil {
 		utils.Error("ActivityRepo is nil")
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
@@ -178,8 +170,6 @@ func HandleStartActivityAutocomplete(s *discordgo.Session, i *discordgo.Interact
 		return
 	}
 
-	utils.Debug("HandleStartActivityAutocomplete: Retrieved %d boss activities", len(activities))
-
 	focusedOption := i.ApplicationCommandData().Options[0]
 	userInput := strings.ToLower(focusedOption.StringValue())
 
@@ -199,8 +189,6 @@ func HandleStartActivityAutocomplete(s *discordgo.Session, i *discordgo.Interact
 			})
 		}
 	}
-
-	utils.Debug("HandleStartActivityAutocomplete: Sending %d filtered choices (max 25)", len(choices))
 
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionApplicationCommandAutocompleteResult,

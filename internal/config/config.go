@@ -1,8 +1,9 @@
 package config
 
 import (
-	"fmt"
 	"os"
+
+	"misclicked-events/internal/utils"
 
 	"github.com/joho/godotenv"
 )
@@ -10,13 +11,13 @@ import (
 func GetToken() string {
 	err := godotenv.Load("./.env")
 	if err != nil {
-		fmt.Println("Error loading .env file")
+		utils.Error("Error loading .env file: %v", err)
 		os.Exit(1)
 	}
 
 	token := os.Getenv("DISCORD_BOT_TOKEN")
 	if token == "" {
-		fmt.Println("No bot token found! Set the DISCORD_BOT_TOKEN environment variable.")
+		utils.Error("No bot token found! Set the DISCORD_BOT_TOKEN environment variable.")
 		os.Exit(1)
 	}
 

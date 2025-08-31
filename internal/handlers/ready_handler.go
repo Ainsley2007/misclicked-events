@@ -1,9 +1,8 @@
 package handlers
 
 import (
-	"fmt"
-
 	"misclicked-events/internal/data"
+	"misclicked-events/internal/utils"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -19,7 +18,7 @@ func MakeReadyHandler() func(*discordgo.Session, *discordgo.Ready) {
 				}
 			}
 			if err := data.ServerRepo.RegisterServer(g.ID, name); err != nil {
-				fmt.Printf("⚠ could not register server %q (%s): %v\n", name, g.ID, err)
+				utils.Error("could not register server %q (%s): %v", name, g.ID, err)
 			}
 		}
 	}
