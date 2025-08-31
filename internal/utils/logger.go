@@ -22,7 +22,7 @@ type Logger struct {
 	level LogLevel
 }
 
-var defaultLogger = &Logger{level: DEBUG}
+var defaultLogger = &Logger{level: INFO}
 
 func init() {
 	logLevelStr := os.Getenv("LOG_LEVEL")

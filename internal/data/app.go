@@ -20,8 +20,6 @@ var (
 	ActivityRepo          repository.ActivityRepository
 	AddAccountUseCase     *usecase.AddAccountUseCase
 	RenameAccountUseCase  *usecase.RenameAccountUseCase
-	AddActivityUseCase    *usecase.AddActivityUseCase
-	RemoveActivityUseCase *usecase.RemoveActivityUseCase
 	StartActivityUseCase  *usecase.StartActivityUseCase
 	UpdateHiscoresUseCase *usecase.UpdateHiscoresUseCase
 )
@@ -54,8 +52,6 @@ func Init(dbPath string) error {
 
 	AddAccountUseCase = usecase.NewAddAccountUseCase(ParticipantRepo, HiscoreRepo, CompetitionRepo)
 	RenameAccountUseCase = usecase.NewRenameAccountUseCase(ParticipantRepo, HiscoreRepo)
-	AddActivityUseCase = usecase.NewAddActivityUseCase(ActivityRepo)
-	RemoveActivityUseCase = usecase.NewRemoveActivityUseCase(ActivityRepo)
 	StartActivityUseCase = usecase.NewStartActivityUseCase(CompetitionRepo, ParticipantRepo, ActivityRepo, HiscoreRepo)
 	UpdateHiscoresUseCase = usecase.NewUpdateHiscoresUseCase(CompetitionRepo, ParticipantRepo, ConfigRepo, HiscoreRepo)
 

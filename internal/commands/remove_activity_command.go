@@ -37,7 +37,7 @@ func HandleRemoveActivityCommand(s *discordgo.Session, i *discordgo.InteractionC
 		return
 	}
 
-	err = data.RemoveActivityUseCase.Execute(name)
+	err = data.ActivityRepo.RemoveActivity(name)
 	if err != nil {
 		handleCommandError(s, i, err, "Failed to remove activity")
 		return

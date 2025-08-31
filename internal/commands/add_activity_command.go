@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"misclicked-events/internal/data"
+	"misclicked-events/internal/domain"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -75,9 +76,12 @@ func HandleAddActivityCommand(s *discordgo.Session, i *discordgo.InteractionCrea
 	hiscoreNamesStr, err := getStringOption(i, 2)
 	if err == nil && hiscoreNamesStr != "" {
 		hiscoreNames = strings.Split(hiscoreNamesStr, ",")
-		for i, name := range hiscoreNames {
-			hiscoreNames[i] = strings.TrimSpace(name)
+		for i, n := range hiscoreNames {
+			hiscoreNames[i] = strings.TrimSpace(n)
 		}
+	}
+	if len(hiscoreNames) == 0 {
+		hiscoreNames = []string{name}
 	}
 
 	threshold := 5
@@ -86,7 +90,14 @@ func HandleAddActivityCommand(s *discordgo.Session, i *discordgo.InteractionCrea
 		threshold = thresholdOption
 	}
 
-	err = data.AddActivityUseCase.Execute(name, activityType, hiscoreNames, threshold)
+	activity := &domain.ActivityEntity{
+		Name:         name,
+		Type:         activityType,
+		HiscoreNames: hiscoreNames,
+		Threshold:    threshold,
+	}
+
+	err = data.ActivityRepo.AddActivity(activity)
 	if err != nil {
 		handleCommandError(s, i, err, "Failed to add activity")
 		return

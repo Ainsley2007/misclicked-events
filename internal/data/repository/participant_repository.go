@@ -46,7 +46,7 @@ func (r *ParticipantRepository) AddAccount(serverID, discordID, accountName stri
 		return fmt.Errorf("failed to add account")
 	}
 
-	utils.Info("Added account %s for participant %s in server %s", accountName, discordID, serverID)
+	utils.Debug("Added account %s for participant %s in server %s", accountName, discordID, serverID)
 	return nil
 }
 
@@ -72,7 +72,7 @@ func (r *ParticipantRepository) RemoveAccount(serverID, discordID, accountName s
 		return fmt.Errorf("failed to remove account")
 	}
 
-	utils.Info("Removed account %s for participant %s in server %s", accountName, discordID, serverID)
+	utils.Debug("Removed account %s for participant %s in server %s", accountName, discordID, serverID)
 	return nil
 }
 
@@ -107,7 +107,7 @@ func (r *ParticipantRepository) RenameAccount(serverID, discordID, oldUsername, 
 		return fmt.Errorf("failed to rename account")
 	}
 
-	utils.Info("Renamed account %s to %s for participant %s in server %s", oldUsername, newUsername, discordID, serverID)
+	utils.Debug("Renamed account %s to %s for participant %s in server %s", oldUsername, newUsername, discordID, serverID)
 	return nil
 }
 

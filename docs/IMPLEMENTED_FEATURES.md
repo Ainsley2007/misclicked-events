@@ -127,6 +127,7 @@ File: `cmd/bulk_import/main.go`.
 - Ensure dependencies direction: handlers → commands → usecases → interfaces → repository/datasource.
 - Use cases depend on interfaces, not concrete repos; persistence details stay in repos.
 - Keep `internal/data/app.go` as the composition root only.
+ - Prefer adding a use case only when a command must orchestrate multiple repository operations; for single-repository actions, call the repository directly from the command.
 
 #### Phase 4 — Hiscore updates: resilience and correctness
 - Add bounded retries with jitter in hiscore datasource; handle rate limiting.
