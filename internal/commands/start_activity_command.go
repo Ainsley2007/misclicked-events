@@ -23,6 +23,7 @@ var StartActivityCommand = &discordgo.ApplicationCommand{
 				{Name: "Colosseum", Value: "COLO"},
 				{Name: "Corporeal beast", Value: "Corp"},
 				{Name: "Wildy boss trio (Vet'ion, Callisto, Venenatis)", Value: "Wildy"},
+				{Name: "The Gauntlet", Value: "CG"},
 				{Name: "COX", Value: "COX"},
 				{Name: "Huey", Value: "Huey"},
 				{Name: "Inferno", Value: "Inferno"},

@@ -6,6 +6,11 @@ var Activities = map[string]ActivityDetails{
 		BossNames:     []string{"Sol Heredit"},
 		BossThumbnail: "https://www.runescape.com/img/rsp777/game_icon_solheredit.png?2",
 	},
+	"CG": {
+		Threshold:     5,
+		BossNames:     []string{"The Gauntlet", "The Corrupted Gauntlet"},
+		BossThumbnail: "https://www.runescape.com/img/rsp777/game_icon_thecorruptedgauntlet.png?2",
+	},
 	"Corp": {
 		Threshold:     25,
 		BossNames:     []string{"Corporeal Beast"},
